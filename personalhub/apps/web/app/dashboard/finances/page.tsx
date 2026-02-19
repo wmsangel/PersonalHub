@@ -1,0 +1,252 @@
+import { notFound, redirect } from "next/navigation";
+import { Wallet } from "lucide-react";
+import { TransactionDialog } from "@/components/finances/TransactionDialog";
+import { TransactionList } from "@/components/finances/TransactionList";
+import { AccountsPanel } from "@/components/finances/AccountsPanel";
+import { SummaryCards } from "@/components/finances/SummaryCards";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { NoFamilyState } from "@/components/layout/NoFamilyState";
+import { getAccountsAction, getFinanceSummaryAction, getTransactionsAction } from "@/lib/actions/finances";
+import { assertCanViewModule, canEditModule } from "@/lib/permissions";
+import { getSupabaseServerClient } from "@/lib/supabase/server";
+
+type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+
+type CategoryRow = {
+  id: string;
+  family_id: string;
+  name: string;
+  kind: "income" | "expense";
+  color: string;
+  icon: string | null;
+};
+
+const readParam = (value: string | string[] | undefined): string => {
+  if (Array.isArray(value)) {
+    return value[0] ?? "";
+  }
+
+  return value ?? "";
+};
+
+const asMonth = (value: string): string => (value.match(/^\d{4}-\d{2}$/) ? value : "");
+
+export default async function FinancesPage({ searchParams }: { searchParams: SearchParams }) {
+  const params = await searchParams;
+  const from = readParam(params.from);
+  const to = readParam(params.to);
+  const kind = readParam(params.kind);
+  const accountId = readParam(params.accountId);
+  const categoryId = readParam(params.categoryId);
+  const month = asMonth(readParam(params.month)) || new Date().toISOString().slice(0, 7);
+
+  const supabase = await getSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    redirect("/auth");
+  }
+
+  const membership = await supabase
+    .from("family_members")
+    .select("id, family_id, role")
+    .eq("user_id", user.id)
+    .eq("is_active", true)
+    .limit(1)
+    .maybeSingle();
+
+  if (!membership.data) {
+    return <NoFamilyState />;
+  }
+
+  const permission = await supabase
+    .from("member_permissions")
+    .select("can_view, can_edit")
+    .eq("member_id", membership.data.id)
+    .eq("module", "finances")
+    .limit(1)
+    .maybeSingle();
+
+  const modulePermissions = {
+    finances: {
+      canView: permission.data?.can_view ?? membership.data.role === "admin",
+      canEdit: permission.data?.can_edit ?? membership.data.role === "admin",
+    },
+  };
+
+  try {
+    assertCanViewModule(modulePermissions, "finances");
+  } catch {
+    notFound();
+  }
+  const canEditFinances = canEditModule(modulePermissions, "finances");
+
+  const [accountsResult, transactionsResult, summaryResult, categoriesResult] = await Promise.all([
+    getAccountsAction(),
+    getTransactionsAction({
+      from: from || undefined,
+      to: to || undefined,
+      kind: kind === "income" || kind === "expense" ? kind : "all",
+      accountId: accountId || undefined,
+      categoryId: categoryId || undefined,
+    }),
+    getFinanceSummaryAction({ month }),
+    supabase
+      .from("finance_categories")
+      .select("id, family_id, name, kind, color, icon")
+      .eq("family_id", membership.data.family_id)
+      .order("is_system", { ascending: false })
+      .order("name", { ascending: true }),
+  ]);
+
+  const pageError =
+    accountsResult.error ??
+    transactionsResult.error ??
+    summaryResult.error ??
+    categoriesResult.error?.message ??
+    null;
+
+  if (pageError) {
+    return (
+      <section className="grid gap-4">
+        <h1 className="text-2xl font-semibold">Финансы</h1>
+        <Card className="p-4 text-sm text-destructive">{pageError}</Card>
+      </section>
+    );
+  }
+
+  const accounts = accountsResult.data ?? [];
+  const categories = (categoriesResult.data ?? []) as CategoryRow[];
+  const transactions = transactionsResult.data ?? [];
+  const summary = summaryResult.data ?? { income: 0, expense: 0, balance: 0 };
+
+  return (
+    <section className="grid gap-6">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-cyan-500/20 bg-cyan-500/10">
+            <Wallet className="h-6 w-6 text-cyan-400" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight text-white">Финансы</h1>
+            <p className="mt-0.5 text-sm text-white/40">Счета, транзакции и сводка доходов/расходов семьи.</p>
+          </div>
+        </div>
+        <TransactionDialog
+          accounts={accounts.filter((account) => !account.is_archived).map((account) => ({ id: account.id, name: account.name }))}
+          categories={categories.map((category) => ({ id: category.id, name: category.name, kind: category.kind }))}
+          canEdit={canEditFinances}
+        />
+      </div>
+
+      <SummaryCards income={summary.income} expense={summary.expense} balance={summary.balance} />
+
+      <AccountsPanel
+        accounts={accounts.map((account) => ({
+          id: account.id,
+          name: account.name,
+          type: account.type,
+          currency: account.currency,
+          balance: account.balance,
+          is_archived: account.is_archived,
+        }))}
+      />
+
+      <Card className="rounded-xl border border-white/[0.07] bg-white/[0.03] p-4">
+        <form className="grid gap-3 md:grid-cols-6" method="get">
+          <div className="grid gap-1 md:col-span-1">
+            <label htmlFor="month" className="text-xs text-white/40">
+              Месяц summary
+            </label>
+            <input
+              id="month"
+              name="month"
+              type="month"
+              defaultValue={month}
+              className="h-10 rounded-md border border-white/[0.08] bg-[#0f0f11] px-3 text-sm text-white"
+            />
+          </div>
+          <div className="grid gap-1 md:col-span-1">
+            <label htmlFor="kind" className="text-xs text-white/40">
+              Тип
+            </label>
+            <select id="kind" name="kind" defaultValue={kind || "all"} className="h-10 rounded-md border border-white/[0.08] bg-[#0f0f11] px-3 text-sm text-white">
+              <option value="all">Все</option>
+              <option value="income">Доход</option>
+              <option value="expense">Расход</option>
+            </select>
+          </div>
+          <div className="grid gap-1 md:col-span-1">
+            <label htmlFor="accountId" className="text-xs text-white/40">
+              Счёт
+            </label>
+            <select id="accountId" name="accountId" defaultValue={accountId || "all"} className="h-10 rounded-md border border-white/[0.08] bg-[#0f0f11] px-3 text-sm text-white">
+              <option value="all">Все</option>
+              {accounts.map((account) => (
+                <option key={account.id} value={account.id}>
+                  {account.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="grid gap-1 md:col-span-1">
+            <label htmlFor="categoryId" className="text-xs text-white/40">
+              Категория
+            </label>
+            <select
+              id="categoryId"
+              name="categoryId"
+              defaultValue={categoryId || "all"}
+              className="h-10 rounded-md border border-white/[0.08] bg-[#0f0f11] px-3 text-sm text-white"
+            >
+              <option value="all">Все</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="grid gap-1 md:col-span-1">
+            <label htmlFor="from" className="text-xs text-white/40">
+              От
+            </label>
+            <input id="from" name="from" type="date" defaultValue={from} className="h-10 rounded-md border border-white/[0.08] bg-[#0f0f11] px-3 text-sm text-white" />
+          </div>
+          <div className="grid gap-1 md:col-span-1">
+            <label htmlFor="to" className="text-xs text-white/40">
+              До
+            </label>
+            <input id="to" name="to" type="date" defaultValue={to} className="h-10 rounded-md border border-white/[0.08] bg-[#0f0f11] px-3 text-sm text-white" />
+          </div>
+          <div className="flex items-end gap-2 md:col-span-6">
+            <Button type="submit" size="sm">
+              Применить фильтры
+            </Button>
+            <Button asChild type="button" variant="outline" size="sm">
+              <a href="/dashboard/finances">Сбросить</a>
+            </Button>
+          </div>
+        </form>
+      </Card>
+
+      <TransactionList
+        transactions={transactions.map((transaction) => ({
+          id: transaction.id,
+          account_id: transaction.account_id,
+          category_id: transaction.category_id,
+          amount: transaction.amount,
+          kind: transaction.kind,
+          title: transaction.title,
+          note: transaction.note,
+          transaction_date: transaction.transaction_date,
+        }))}
+        accounts={accounts.map((account) => ({ id: account.id, name: account.name }))}
+        categories={categories.map((category) => ({ id: category.id, name: category.name }))}
+        canEdit={canEditFinances}
+      />
+    </section>
+  );
+}

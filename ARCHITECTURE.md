@@ -1,6 +1,6 @@
 # PersonalHub — Architecture Document
-> **Version:** 0.3  
-> **Last updated:** 2026-02-17  
+> **Version:** 0.6  
+> **Last updated:** 2026-02-19  
 > 📌 Давай этот файл в начало каждой сессии с ИИ — он знает всё о проекте.
 
 ---
@@ -18,7 +18,7 @@
 
 ```
 Монорепо           →  Turborepo
-Frontend (Web)     →  Next.js 15 (App Router) + TypeScript + Tailwind CSS + shadcn/ui
+Frontend (Web)     →  Next.js 16 (App Router) + TypeScript + Tailwind CSS + shadcn/ui
 Mobile             →  React Native (Expo) + TypeScript       [запланировано: v1.0]
 Backend            →  Supabase (PostgreSQL + Auth + Realtime + Storage)
 Real-time          →  Supabase Realtime (WebSockets)
@@ -43,12 +43,15 @@ personalhub/
 │       │   ├── auth/
 │       │   │   └── page.tsx                         ✅ вход / регистрация
 │       │   ├── dashboard/
-│       │   │   ├── page.tsx                         ✅ виджет-сетка (задачи/покупки/заметки/семья)
-│       │   │   ├── layout.tsx                       ✅ sidebar + header + mobile nav + FamilyProvider
-│       │   │   ├── family/page.tsx                  ✅ участники, инвайты, настройки семьи
-│       │   │   ├── tasks/page.tsx                   ✅ задачи (CRUD + фильтры + dialog)
-│       │   │   ├── shopping/page.tsx                ✅ список покупок + realtime hook
-│       │   │   └── notes/page.tsx                   ✅ заметки + editor + автосохранение
+│       │   │   ├── page.tsx                         ✅ виджет-сетка + visual polish
+│       │   │   ├── layout.tsx                       ✅ sidebar/header/mobile nav + FamilyProvider + permissions
+│       │   │   ├── family/page.tsx                  ✅ участники, инвайты, настройки семьи + права модулей
+│       │   │   ├── tasks/page.tsx                   ✅ задачи (CRUD + фильтры + dialog + permission gates)
+│       │   │   ├── shopping/page.tsx                ✅ список покупок + realtime + permission gates
+│       │   │   ├── notes/page.tsx                   ✅ заметки + editor + автосохранение + permission gates
+│       │   │   ├── calendar/page.tsx                ✅ календарь MVP (month view + CRUD)
+│       │   │   ├── finances/page.tsx                ✅ финансы MVP (summary + счета + транзакции + фильтры)
+│       │   │   └── wishlists/page.tsx               ✅ вишлисты MVP (списки + items + reserve)
 │       │   └── invite/
 │       │       └── accept/
 │       │           └── page.tsx                     ✅ принятие приглашения
@@ -62,15 +65,22 @@ personalhub/
 │       │   ├── constants.ts                         ✅ placeholder-константы
 │       │   ├── invites.ts                           ✅ expirePendingInvites(familyId)
 │       │   ├── hooks/useFamily.ts                   ✅ текущая семья в контексте
-│       │   └── actions/                             ✅ module actions (tasks/shopping/notes)
+│       │   ├── permissions.ts                       ✅ canView/canEdit/assert helpers
+│       │   └── actions/                             ✅ module actions (tasks/shopping/notes/permissions/calendar/finances/wishlists)
 │       ├── actions.ts                               ✅ все server actions
 │       ├── middleware.ts                            ✅ refresh сессии
 │       ├── components/
 │       │   ├── layout/                              ✅ Sidebar/Header/MobileNav
+│       │   ├── family/                              ✅ PermissionsDialog/PermissionRow
 │       │   ├── tasks/                               ✅ TaskItem/TaskFilters/TaskDialog
 │       │   ├── shopping/                            ✅ ShoppingItem/AddItemForm/ShoppingBoard
 │       │   ├── notes/                               ✅ NoteCard/NoteEditor/ColorPicker
+│       │   ├── calendar/                            ✅ CalendarHeader/CalendarDayGrid/EventDialog
+│       │   ├── finances/                            ✅ AccountsPanel/TransactionList/TransactionDialog/SummaryCards
+│       │   ├── wishlists/                           ✅ WishlistCard/WishlistItem/WishlistDialog
 │       │   └── providers/                           ✅ Theme/Toast/Family providers
+│       ├── e2e/                                     ✅ playwright specs (auth/tasks/shopping/notes/permissions/finances/wishlists)
+│       ├── playwright.config.ts                     ✅
 │       ├── .env.example                             ✅
 │       └── .env.local                               ✅ (не в git)
 ├── packages/
@@ -87,7 +97,20 @@ personalhub/
 │       ├── 20260217200000_tasks.sql                 ✅ applied
 │       ├── 20260217210000_shopping.sql              ✅ applied
 │       ├── 20260217220000_notes.sql                 ✅ applied
-│       └── 20260217223000_shopping_realtime.sql     ✅ applied
+│       ├── 20260217223000_shopping_realtime.sql     ✅ applied
+│       ├── 20260218090000_member_permissions.sql    ✅ applied
+│       ├── 20260218093000_member_permissions_seed.sql ✅ applied
+│       ├── 20260218103000_calendar.sql              ✅ applied
+│       ├── 20260219090000_finance_categories.sql    ✅ applied
+│       ├── 20260219093000_accounts.sql              ✅ applied
+│       ├── 20260219100000_transactions.sql          ✅ applied
+│       └── 20260219113000_wishlists.sql             ✅ applied
+├── scripts/
+│   └── smoke/
+│       └── sprint02-smoke.mjs                       ✅
+├── .github/
+│   └── workflows/
+│       └── web-quality.yml                          ✅ check-types + lint + smoke + auth e2e
 ├── ARCHITECTURE.md                                  ✅ этот файл
 ├── README.md                                        ✅
 ├── turbo.json
@@ -194,7 +217,7 @@ CREATE TABLE family_invites (
 );
 ```
 
-### 5.4 Настройки доступа ⏳ СЛЕДУЮЩИЙ ШАГ
+### 5.4 Настройки доступа ✅ ПРИМЕНЕНО
 
 ```sql
 CREATE TABLE member_permissions (
@@ -209,16 +232,21 @@ CREATE TABLE member_permissions (
 );
 ```
 
-### 5.5 Виджеты ✅ SPRINT 01 ЗАКРЫТ
+RLS:
+- `SELECT`: любой активный член семьи
+- `INSERT/UPDATE/DELETE`: только семейный `admin`
+- Добавлен seed + trigger для авто-заполнения прав при создании `family_members`
+
+### 5.5 Виджеты ✅ SPRINT 03 ЗАКРЫТ
 
 | Модуль | Таблицы | Статус |
 |--------|---------|--------|
 | Задачи | `tasks` | ✅ реализовано |
 | Список покупок | `shopping_lists`, `shopping_items` | ✅ реализовано |
 | Заметки | `notes` | ✅ реализовано |
-| Календарь | `events`, `event_visibility` | ⏳ v1.0 |
-| Финансы | `accounts`, `transactions`, `finance_categories`, `savings_goals`, `debts` | ⏳ v1.0 |
-| Вишлисты | `wishlists`, `wishlist_items` | ⏳ v1.0 |
+| Календарь | `events`, `event_visibility` | ✅ реализовано (MVP) |
+| Финансы | `accounts`, `transactions`, `finance_categories` | ✅ реализовано (MVP) |
+| Вишлисты | `wishlists`, `wishlist_items` | ✅ реализовано (MVP) |
 | Документы | `documents` | ⏳ v2.0 |
 | Подписки | `subscriptions` | ⏳ v1.0 |
 
@@ -275,7 +303,11 @@ accepted                 revoked
 - `/dashboard/tasks` — CRUD задач, фильтры, назначение исполнителя, приоритеты
 - `/dashboard/shopping` — список покупок с realtime hook и очисткой купленного
 - `/dashboard/notes` + `/dashboard/notes/[id]` — карточки заметок, редактор, автосохранение
+- `/dashboard/calendar` — месяц 7x6, навигация по месяцам, CRUD событий
+- `/dashboard/finances` — summary карточки, счета, транзакции, фильтры, create/delete
+- `/dashboard/wishlists` — CRUD вишлистов/items, reserve/unreserve, private/shared visibility
 - `/dashboard/family` — участники, приглашения, управление семьёй
+- Permission-gate: скрытие модулей в навигации + server-page доступ + read-only UI
 - Layout: sidebar + header + mobile nav + dark mode
 - Toast-уведомления через `sonner` в ключевых действиях
 
@@ -324,7 +356,7 @@ NEXT_PUBLIC_APP_URL=https://personalhub.app
 ## 12. Роадмап
 
 ### ✅ Сделано (MVP — фундамент)
-- [x] Монорепо (Turborepo) + Next.js 15
+- [x] Монорепо (Turborepo) + Next.js 16
 - [x] Supabase подключение (browser / server / admin / shared clients)
 - [x] БД: profiles, families, family_members
 - [x] RLS политики + helper-функции
@@ -345,11 +377,37 @@ NEXT_PUBLIC_APP_URL=https://personalhub.app
 - [x] Семья: перенос управления участниками/инвайтами на `/dashboard/family`
 - [x] Главная `/dashboard`: виджет-сетка
 
-### 🔜 Следующий шаг (Sprint 02)
-- [ ] `member_permissions` таблица + RLS + UI управления доступами
-- [ ] Календарь (`events`, `event_visibility`)
-- [ ] Улучшение визуального дизайна auth/dashboard
-- [ ] E2E тесты ключевых сценариев (auth, tasks, shopping realtime, notes)
+### ✅ Sprint 02 завершён
+- [x] `member_permissions` таблица + RLS + seed/trigger
+- [x] UI управления доступами участников семьи
+- [x] Календарь (`events`, `event_visibility`) + server actions + month-view UI
+- [x] Permission gates для модулей (nav/page/read-only)
+- [x] Visual polish auth/dashboard
+- [x] Playwright e2e scaffolding для критичных сценариев
+- [x] Smoke script `scripts/smoke/sprint02-smoke.mjs`
+
+### ✅ Sprint 03 завершён
+- [x] Финансы MVP: `finance_categories`, `accounts`, `transactions` + RLS/валидации
+- [x] Вишлисты MVP: `wishlists`, `wishlist_items` + reserve rules + RLS
+- [x] Actions и UI для `/dashboard/finances` и `/dashboard/wishlists`
+- [x] Permissions integration для `finances`/`wishlists` в layout/nav/pages
+- [x] E2E стабилизация: `[smoke]`/`[full]` разделение + новые spec для finances/wishlists
+- [x] CI workflow: `.github/workflows/web-quality.yml`
+
+### ✅ Sprint 04 завершён (Total Visual Overhaul + Addendum)
+- [x] Общий визуальный язык приведён к единому стандарту на auth/dashboard экранах
+- [x] Обновлены Sidebar/Header/MobileNav (глубина, hover, отступы, читаемость)
+- [x] Переполированы все ключевые модули: Dashboard, Tasks, Shopping, Notes, Calendar, Finances, Wishlists, Family
+- [x] Исправлены критические визуальные и UX-регрессии из Addendum (A1/A2/B1/C1/D1/D2)
+- [x] Включён auto-bootstrap personal space для нового пользователя при входе в dashboard
+- [x] Восстановлена консистентная видимость модулей в sidebar/mobile при пустом наборе прав
+- [x] TypeScript checks ✅ + Lint ✅ после финальных правок
+
+### 🔜 Следующий шаг (Sprint 05)
+- [ ] Расширение финансов: переносы между счетами, цели накоплений, долги
+- [ ] Улучшение e2e data seeding для полностью детерминированных full-flow тестов
+- [ ] Сценарии с несколькими ролями (admin/adult/child/guest) в CI
+- [ ] Улучшение realtime/online presence и UX micro-interactions
 
 ### 📅 v1.0
 - [ ] Календарь (личный + семейный)
