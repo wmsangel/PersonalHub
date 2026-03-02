@@ -1,5 +1,5 @@
 # PersonalHub — Architecture Document
-> **Version:** 0.6  
+> **Version:** 0.7  
 > **Last updated:** 2026-02-19  
 > 📌 Давай этот файл в начало каждой сессии с ИИ — он знает всё о проекте.
 
@@ -44,17 +44,21 @@ personalhub/
 │       │   │   └── page.tsx                         ✅ вход / регистрация
 │       │   ├── dashboard/
 │       │   │   ├── page.tsx                         ✅ виджет-сетка + visual polish
-│       │   │   ├── layout.tsx                       ✅ sidebar/header/mobile nav + FamilyProvider + permissions
+│       │   │   ├── layout.tsx                       ✅ sidebar/header/mobile nav + notifications + auto family bootstrap
 │       │   │   ├── family/page.tsx                  ✅ участники, инвайты, настройки семьи + права модулей
 │       │   │   ├── tasks/page.tsx                   ✅ задачи (CRUD + фильтры + dialog + permission gates)
 │       │   │   ├── shopping/page.tsx                ✅ список покупок + realtime + permission gates
 │       │   │   ├── notes/page.tsx                   ✅ заметки + editor + автосохранение + permission gates
 │       │   │   ├── calendar/page.tsx                ✅ календарь MVP (month view + CRUD)
 │       │   │   ├── finances/page.tsx                ✅ финансы MVP (summary + счета + транзакции + фильтры)
-│       │   │   └── wishlists/page.tsx               ✅ вишлисты MVP (списки + items + reserve)
+│       │   │   ├── wishlists/page.tsx               ✅ вишлисты MVP (списки + items + reserve)
+│       │   │   └── settings/billing/page.tsx        ✅ billing page (plans + checkout + portal)
 │       │   └── invite/
 │       │       └── accept/
 │       │           └── page.tsx                     ✅ принятие приглашения
+│       │   └── api/
+│       │       └── stripe/
+│       │           └── webhook/route.ts             ✅ Stripe webhook
 │       ├── lib/
 │       │   ├── supabase/
 │       │   │   ├── browser.ts                       ✅ клиент для клиентского кода
@@ -63,14 +67,15 @@ personalhub/
 │       │   │   └── admin.ts                         ✅ service role клиент
 │       │   ├── env.ts                               ✅ типизированные env-переменные
 │       │   ├── constants.ts                         ✅ placeholder-константы
+│       │   ├── stripe.ts                            ✅ Stripe server client singleton
 │       │   ├── invites.ts                           ✅ expirePendingInvites(familyId)
 │       │   ├── hooks/useFamily.ts                   ✅ текущая семья в контексте
 │       │   ├── permissions.ts                       ✅ canView/canEdit/assert helpers
-│       │   └── actions/                             ✅ module actions (tasks/shopping/notes/permissions/calendar/finances/wishlists)
+│       │   └── actions/                             ✅ module actions (+ billing)
 │       ├── actions.ts                               ✅ все server actions
 │       ├── middleware.ts                            ✅ refresh сессии
 │       ├── components/
-│       │   ├── layout/                              ✅ Sidebar/Header/MobileNav
+│       │   ├── layout/                              ✅ Sidebar/Header/MobileNav/NotificationBell/NoFamilyState
 │       │   ├── family/                              ✅ PermissionsDialog/PermissionRow
 │       │   ├── tasks/                               ✅ TaskItem/TaskFilters/TaskDialog
 │       │   ├── shopping/                            ✅ ShoppingItem/AddItemForm/ShoppingBoard
@@ -104,7 +109,9 @@ personalhub/
 │       ├── 20260219090000_finance_categories.sql    ✅ applied
 │       ├── 20260219093000_accounts.sql              ✅ applied
 │       ├── 20260219100000_transactions.sql          ✅ applied
-│       └── 20260219113000_wishlists.sql             ✅ applied
+│       ├── 20260219113000_wishlists.sql             ✅ applied
+│       ├── 20260220000000_subscriptions.sql         ✅ applied
+│       └── 20260220010000_notifications.sql         ✅ applied
 ├── scripts/
 │   └── smoke/
 │       └── sprint02-smoke.mjs                       ✅
@@ -248,7 +255,8 @@ RLS:
 | Финансы | `accounts`, `transactions`, `finance_categories` | ✅ реализовано (MVP) |
 | Вишлисты | `wishlists`, `wishlist_items` | ✅ реализовано (MVP) |
 | Документы | `documents` | ⏳ v2.0 |
-| Подписки | `subscriptions` | ⏳ v1.0 |
+| Подписки | `subscriptions` | ✅ Sprint 05 |
+| Уведомления | `notifications` | ✅ Sprint 05 |
 
 ---
 
@@ -264,6 +272,10 @@ RLS:
 | `acceptInviteAction` | Принятие инвайта. Обновляет профиль + nickname, статус → accepted |
 | `revokeInviteAction` | Admin отзывает pending-инвайт |
 
+Дополнительно (`lib/actions`):
+- `createCheckoutSessionAction(plan)` — запускает Stripe Checkout для админа семьи
+- `createPortalSessionAction()` — открывает Stripe Billing Portal
+
 ---
 
 ## 7. Маршрутизация
@@ -273,6 +285,8 @@ RLS:
 | `/` | Редирект по сессии | Все |
 | `/auth` | Вход / Регистрация | Только гости |
 | `/dashboard` | Основной интерфейс | Только авторизованные |
+| `/dashboard/settings/billing` | Тарифы и управление подпиской | Авторизованные (admin billing controls) |
+| `/api/stripe/webhook` | Обработка Stripe webhook | Stripe |
 | `/invite/accept` | Принятие приглашения | Авторизованные + есть инвайт |
 
 **Middleware:** refresh сессии Supabase на каждом запросе. Авто-redirect приглашённого на `/invite/accept` до завершения профиля.
@@ -307,8 +321,12 @@ accepted                 revoked
 - `/dashboard/finances` — summary карточки, счета, транзакции, фильтры, create/delete
 - `/dashboard/wishlists` — CRUD вишлистов/items, reserve/unreserve, private/shared visibility
 - `/dashboard/family` — участники, приглашения, управление семьёй
+- `/dashboard/settings/billing` — планы Free/Premium/Family+, checkout, portal
 - Permission-gate: скрытие модулей в навигации + server-page доступ + read-only UI
 - Layout: sidebar + header + mobile nav + dark mode
+- Notification bell в header + realtime updates из `notifications`
+- Если у пользователя нет семьи: auto-bootstrap личного family space в `dashboard/layout`
+- Модули не падают в 404 без семьи: отображают `NoFamilyState` с переходом в "Семья"
 - Toast-уведомления через `sonner` в ключевых действиях
 
 ---
@@ -336,6 +354,11 @@ SUPABASE_SERVICE_ROLE_KEY=
 STRIPE_SECRET_KEY=
 STRIPE_WEBHOOK_SECRET=
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
+STRIPE_PREMIUM_PRICE_ID=
+STRIPE_FAMILY_PLUS_PRICE_ID=
+
+# Error tracking
+NEXT_PUBLIC_SENTRY_DSN=
 
 # Cloudflare R2
 CLOUDFLARE_ACCOUNT_ID=
@@ -403,7 +426,19 @@ NEXT_PUBLIC_APP_URL=https://personalhub.app
 - [x] Восстановлена консистентная видимость модулей в sidebar/mobile при пустом наборе прав
 - [x] TypeScript checks ✅ + Lint ✅ после финальных правок
 
-### 🔜 Следующий шаг (Sprint 05)
+### 🚧 Sprint 05 в работе (Path to v1.0)
+- [x] Stripe data layer: `subscriptions` + RLS + auto free-subscription trigger
+- [x] Stripe webhook endpoint: `/api/stripe/webhook`
+- [x] Billing actions + billing page (`/dashboard/settings/billing`)
+- [x] Notifications data layer: `notifications` + RLS + realtime publication
+- [x] Notification bell в header (live updates + mark read)
+- [x] UX: авто-bootstrap семьи на dashboard + no-family states вместо 404
+- [x] Sentry package installed (`@sentry/nextjs`)
+- [ ] Stripe Dashboard products/prices + реальные `price_id` в env
+- [ ] Vercel deployment + env setup + webhook registration
+- [ ] Sentry wizard/init + DSN wiring
+
+### 🔜 Следующий шаг (после Sprint 05)
 - [ ] Расширение финансов: переносы между счетами, цели накоплений, долги
 - [ ] Улучшение e2e data seeding для полностью детерминированных full-flow тестов
 - [ ] Сценарии с несколькими ролями (admin/adult/child/guest) в CI

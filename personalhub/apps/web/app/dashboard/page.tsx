@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import Script from "next/script";
 import {
   ArrowRight,
   CalendarDays,
@@ -386,6 +387,18 @@ export default async function DashboardPage() {
             );
           })}
         </div>
+      </Card>
+
+      <Card className="rounded-xl border border-white/[0.07] bg-white/[0.03] p-5">
+        <h2 className="mb-3 text-sm font-semibold text-white/80">Реклама (тест)</h2>
+        <ins
+          className="asm_async_creative"
+          style={{ display: "inline-block", width: "246px", height: "369px", textAlign: "left", textDecoration: "none" }}
+          data-asm-cdn="cdn.adspirit.de"
+          data-asm-host="bmm.adspirit.de"
+          data-asm-params="pid=45"
+        />
+        <Script src="https://cdn.adspirit.de/adasync.min.js" strategy="afterInteractive" />
       </Card>
     </section>
   );
