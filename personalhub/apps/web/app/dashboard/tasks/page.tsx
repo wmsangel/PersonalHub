@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { CheckSquare, ClipboardList } from "lucide-react";
+import { CheckSquare, ClipboardList, Sparkles } from "lucide-react";
 import { TaskDialog } from "@/components/tasks/TaskDialog";
 import { TaskFilters } from "@/components/tasks/TaskFilters";
 import { TaskItem } from "@/components/tasks/TaskItem";
@@ -109,15 +109,19 @@ export default async function TasksPage({ searchParams }: { searchParams: Search
   const overdueCount = tasks.filter((task) => task.due_date && task.status !== "done" && new Date(`${task.due_date}T23:59:59`).getTime() < Date.now()).length;
 
   return (
-    <section className="grid gap-6">
-      <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
+    <section className="grid gap-7">
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-indigo-500/20 bg-indigo-500/10">
+          <div className="flex h-14 w-14 items-center justify-center rounded-[1.25rem] border border-indigo-500/18 bg-indigo-500/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
             <CheckSquare className="h-6 w-6 text-indigo-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-white">Задачи</h1>
-            <p className="mt-0.5 text-sm text-white/40">
+            <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-white/8 bg-white/[0.04] px-3 py-1.5 text-[11px] uppercase tracking-[0.2em] text-white/34">
+              <Sparkles className="h-3.5 w-3.5 text-indigo-300" />
+              фокус семьи
+            </div>
+            <h1 className="text-[2rem] font-semibold tracking-[-0.04em] text-white">Задачи</h1>
+            <p className="mt-1 text-sm text-white/42">
               {tasks.length} активных {overdueCount > 0 ? `· ${overdueCount} просрочено` : ""}
             </p>
           </div>
@@ -125,24 +129,26 @@ export default async function TasksPage({ searchParams }: { searchParams: Search
         <TaskDialog members={members as FamilyMemberOption[]} canEdit={canEditTasks} />
       </div>
 
-      <TaskFilters
-        currentStatus={statusFilter}
-        currentPriority={priorityFilter}
-        currentAssignedTo={assignedToFilter}
-        members={members as FamilyMemberOption[]}
-      />
+      <Card className="p-4">
+        <TaskFilters
+          currentStatus={statusFilter}
+          currentPriority={priorityFilter}
+          currentAssignedTo={assignedToFilter}
+          members={members as FamilyMemberOption[]}
+        />
+      </Card>
 
       {tasks.length === 0 ? (
-        <Card className="flex flex-col items-center justify-center rounded-xl border border-white/[0.07] bg-white/[0.03] py-24 text-center">
+        <Card className="flex flex-col items-center justify-center py-24 text-center">
           <div className="relative mb-6">
-            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl border border-indigo-500/10 bg-gradient-to-br from-indigo-500/10 to-violet-600/10">
+            <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-[1.8rem] border border-indigo-500/10 bg-gradient-to-br from-indigo-500/12 to-violet-600/12">
               <ClipboardList className="h-9 w-9 text-indigo-400/50" />
             </div>
             <div className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-indigo-500/30" />
             <div className="absolute -bottom-1.5 -left-1.5 h-2 w-2 rounded-full bg-violet-500/30" />
           </div>
-          <h2 className="mb-2 text-lg font-semibold text-white">Пока нет задач</h2>
-          <p className="mb-6 max-w-md text-sm leading-relaxed text-white/40">
+          <h2 className="mb-2 text-[1.45rem] font-semibold tracking-[-0.04em] text-white">Пока нет задач</h2>
+          <p className="mb-6 max-w-md text-sm leading-7 text-white/42">
             Создай первую задачу для семьи: добавь название, дедлайн и назначь исполнителя.
           </p>
           <TaskDialog members={members as FamilyMemberOption[]} canEdit={canEditTasks} />

@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { Check } from "lucide-react";
+import { Check, CreditCard, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -70,16 +70,29 @@ export default async function BillingPage() {
   const hasSubscription = Boolean(subscription?.stripe_customer_id);
 
   return (
-    <div className="mx-auto max-w-6xl p-2 md:p-4">
-      <h1 className="text-2xl font-semibold text-white mb-2">Подписка</h1>
-      <p className="text-sm text-white/50 mb-8">Управляйте тарифом и оплатой вашего семейного пространства.</p>
+    <section className="grid gap-7">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="flex h-14 w-14 items-center justify-center rounded-[1.25rem] border border-indigo-500/18 bg-indigo-500/10">
+            <CreditCard className="h-6 w-6 text-indigo-300" />
+          </div>
+          <div>
+            <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-white/8 bg-white/[0.04] px-3 py-1.5 text-[11px] uppercase tracking-[0.2em] text-white/34">
+              <Sparkles className="h-3.5 w-3.5 text-indigo-300" />
+              рост продукта
+            </div>
+            <h1 className="text-[2rem] font-semibold tracking-[-0.04em] text-white">Подписка</h1>
+            <p className="mt-1 text-sm text-white/42">Управляйте тарифом и оплатой вашего семейного пространства.</p>
+          </div>
+        </div>
+      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         {plans.map((plan) => (
           <Card
             key={plan.id}
             className={cn(
-              "relative border-white/[0.08] bg-white/[0.03]",
+              "relative p-1",
               plan.popular && "ring-2 ring-indigo-500/80",
             )}
           >
@@ -134,7 +147,7 @@ export default async function BillingPage() {
       </div>
 
       {hasSubscription && (
-        <div className="mt-8 rounded-xl border border-white/[0.08] bg-white/[0.03] p-6">
+        <Card className="p-6">
           <h3 className="mb-2 text-sm font-medium text-white">Управление подпиской</h3>
           <p className="mb-4 text-xs text-white/50">
             Обновите платежные данные, просмотрите историю или отмените подписку в Stripe Customer Portal.
@@ -144,8 +157,8 @@ export default async function BillingPage() {
               Открыть Stripe Portal
             </Button>
           </form>
-        </div>
+        </Card>
       )}
-    </div>
+    </section>
   );
 }

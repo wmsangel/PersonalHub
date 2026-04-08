@@ -46,60 +46,57 @@ a {
 
   --color-success: var(--success);
   --color-warning: var(--warning);
-
   --color-brand-primary: var(--brand-primary);
   --color-brand-secondary: var(--brand-secondary);
 }
 
 :root {
-  --radius: 0.75rem;
+  --radius: 1rem;
+  --brand-primary: 239 84% 67%;
+  --brand-secondary: 275 82% 62%;
 
-  --brand-primary: 245 90% 60%;
-  --brand-secondary: 280 85% 65%;
+  --background: 225 18% 8%;
+  --foreground: 220 27% 96%;
+  --muted: 228 14% 12%;
+  --muted-foreground: 220 10% 66%;
+  --card: 228 16% 10%;
+  --card-foreground: 220 27% 96%;
+  --border: 220 16% 19%;
 
-  --background: 0 0% 100%;
-  --foreground: 222 47% 11%;
-  --muted: 210 40% 96%;
-  --muted-foreground: 215 16% 47%;
-  --card: 0 0% 100%;
-  --card-foreground: 222 47% 11%;
-  --border: 214 32% 91%;
+  --success: 152 71% 45%;
+  --warning: 38 92% 54%;
+  --destructive: 351 89% 60%;
 
-  --success: 142 76% 36%;
-  --warning: 38 92% 50%;
-  --destructive: 0 84% 60%;
-
-  --popover: 0 0% 100%;
-  --popover-foreground: 222 47% 11%;
-  --primary: 245 90% 60%;
-  --primary-foreground: 210 40% 98%;
-  --secondary: 210 40% 96%;
-  --secondary-foreground: 222 47% 11%;
-  --accent: 210 40% 96%;
-  --accent-foreground: 222 47% 11%;
-  --input: 214 32% 91%;
-  --ring: 245 90% 60%;
+  --popover: 228 16% 10%;
+  --popover-foreground: 220 27% 96%;
+  --primary: 239 84% 67%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 228 14% 14%;
+  --secondary-foreground: 220 27% 96%;
+  --accent: 228 14% 14%;
+  --accent-foreground: 220 27% 96%;
+  --input: 220 16% 20%;
+  --ring: 239 84% 67%;
 }
 
 .dark {
-  --background: 222 47% 8%;
-  --foreground: 210 40% 98%;
-  --card: 222 47% 11%;
-  --card-foreground: 210 40% 98%;
-  --border: 217 33% 20%;
-  --muted: 217 33% 17%;
-  --muted-foreground: 215 20% 65%;
-
-  --popover: 222 47% 11%;
-  --popover-foreground: 210 40% 98%;
-  --primary: 245 90% 60%;
-  --primary-foreground: 210 40% 98%;
-  --secondary: 217 33% 17%;
-  --secondary-foreground: 210 40% 98%;
-  --accent: 217 33% 17%;
-  --accent-foreground: 210 40% 98%;
-  --input: 217 33% 20%;
-  --ring: 245 90% 60%;
+  --background: 225 18% 8%;
+  --foreground: 220 27% 96%;
+  --muted: 228 14% 12%;
+  --muted-foreground: 220 10% 66%;
+  --card: 228 16% 10%;
+  --card-foreground: 220 27% 96%;
+  --border: 220 16% 19%;
+  --popover: 228 16% 10%;
+  --popover-foreground: 220 27% 96%;
+  --primary: 239 84% 67%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 228 14% 14%;
+  --secondary-foreground: 220 27% 96%;
+  --accent: 228 14% 14%;
+  --accent-foreground: 220 27% 96%;
+  --input: 220 16% 20%;
+  --ring: 239 84% 67%;
 }
 
 @layer base {
@@ -107,14 +104,48 @@ a {
     @apply border-border;
   }
 
+  html {
+    color-scheme: dark;
+  }
+
   body {
-    @apply bg-[#0a0a0a] text-white antialiased;
+    @apply min-h-screen text-white antialiased;
+    font-family: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
+    background:
+      radial-gradient(circle at top left, rgba(34, 211, 238, 0.12), transparent 28%),
+      radial-gradient(circle at bottom left, rgba(99, 102, 241, 0.16), transparent 24%),
+      radial-gradient(circle at bottom right, rgba(244, 114, 182, 0.1), transparent 26%),
+      linear-gradient(180deg, #0a0b11 0%, #090a10 100%);
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.028) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.024) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(circle at center, black, transparent 90%);
+    z-index: -1;
+  }
+
+  h1,
+  h2,
+  h3 {
+    letter-spacing: -0.03em;
+  }
+
+  ::selection {
+    background: rgba(99, 102, 241, 0.28);
+    color: white;
   }
 
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 7px;
+    height: 7px;
   }
 
   ::-webkit-scrollbar-track {
@@ -122,12 +153,12 @@ a {
   }
 
   ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.11);
+    border-radius: 999px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.18);
   }
 
   *:focus {
@@ -135,7 +166,7 @@ a {
   }
 
   ::placeholder {
-    color: rgba(255, 255, 255, 0.25);
+    color: rgba(255, 255, 255, 0.22);
   }
 }
 
@@ -150,4 +181,31 @@ a {
 
 .shopping-strike {
   animation: shopping-strikethrough 0.3s ease-out;
+}
+
+.surface-panel {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.025));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 18px 48px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(14px);
+}
+
+.surface-panel-soft {
+  background: rgba(255, 255, 255, 0.032);
+  border: 1px solid rgba(255, 255, 255, 0.065);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.page-shell {
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.page-title-display {
+  font-family: "Instrument Serif", Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.04em;
 }

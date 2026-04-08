@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation";
-import { Wallet } from "lucide-react";
+import { Sparkles, Wallet } from "lucide-react";
 import { TransactionDialog } from "@/components/finances/TransactionDialog";
 import { TransactionList } from "@/components/finances/TransactionList";
 import { AccountsPanel } from "@/components/finances/AccountsPanel";
@@ -123,15 +123,19 @@ export default async function FinancesPage({ searchParams }: { searchParams: Sea
   const summary = summaryResult.data ?? { income: 0, expense: 0, balance: 0 };
 
   return (
-    <section className="grid gap-6">
-      <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
+    <section className="grid gap-7">
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-cyan-500/20 bg-cyan-500/10">
+          <div className="flex h-14 w-14 items-center justify-center rounded-[1.25rem] border border-cyan-500/18 bg-cyan-500/10">
             <Wallet className="h-6 w-6 text-cyan-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-white">Финансы</h1>
-            <p className="mt-0.5 text-sm text-white/40">Счета, транзакции и сводка доходов/расходов семьи.</p>
+            <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-white/8 bg-white/[0.04] px-3 py-1.5 text-[11px] uppercase tracking-[0.2em] text-white/34">
+              <Sparkles className="h-3.5 w-3.5 text-cyan-300" />
+              семейный баланс
+            </div>
+            <h1 className="text-[2rem] font-semibold tracking-[-0.04em] text-white">Финансы</h1>
+            <p className="mt-1 text-sm text-white/42">Счета, транзакции и спокойная сводка доходов и расходов семьи.</p>
           </div>
         </div>
         <TransactionDialog
@@ -154,7 +158,7 @@ export default async function FinancesPage({ searchParams }: { searchParams: Sea
         }))}
       />
 
-      <Card className="rounded-xl border border-white/[0.07] bg-white/[0.03] p-4">
+      <Card className="p-4">
         <form className="grid gap-3 md:grid-cols-6" method="get">
           <div className="grid gap-1 md:col-span-1">
             <label htmlFor="month" className="text-xs text-white/40">

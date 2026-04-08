@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { FileText, Plus } from "lucide-react";
+import { FileText, Plus, Sparkles } from "lucide-react";
 import { createNoteAction } from "@/lib/actions/notes";
 import { assertCanViewModule, canEditModule } from "@/lib/permissions";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
@@ -81,15 +81,19 @@ export default async function NotesPage({ searchParams }: { searchParams: Search
   const { data: notes } = await query;
 
   return (
-    <section className="grid gap-6">
-      <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
+    <section className="grid gap-7">
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-amber-500/20 bg-amber-500/10">
+          <div className="flex h-14 w-14 items-center justify-center rounded-[1.25rem] border border-amber-500/18 bg-amber-500/10">
             <FileText className="h-6 w-6 text-amber-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-white">Заметки</h1>
-            <p className="mt-0.5 text-sm text-white/40">Личные и общие заметки семьи.</p>
+            <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-white/8 bg-white/[0.04] px-3 py-1.5 text-[11px] uppercase tracking-[0.2em] text-white/34">
+              <Sparkles className="h-3.5 w-3.5 text-amber-300" />
+              мысли и контекст
+            </div>
+            <h1 className="text-[2rem] font-semibold tracking-[-0.04em] text-white">Заметки</h1>
+            <p className="mt-1 text-sm text-white/42">Личные и общие заметки семьи.</p>
           </div>
         </div>
         <form
@@ -109,19 +113,24 @@ export default async function NotesPage({ searchParams }: { searchParams: Search
         </form>
       </div>
 
-      <div className="flex items-center gap-2 border-b border-white/[0.06] pb-5 text-sm">
+      <Card className="p-3">
+        <div className="flex items-center gap-2 text-sm">
         <Button asChild variant={view === "my" ? "default" : "outline"} size="sm">
           <Link href="/dashboard/notes?view=my">Мои заметки</Link>
         </Button>
         <Button asChild variant={view === "shared" ? "default" : "outline"} size="sm">
           <Link href="/dashboard/notes?view=shared">Общие</Link>
         </Button>
-      </div>
+        </div>
+      </Card>
 
       {!notes || notes.length === 0 ? (
-        <Card className="grid justify-items-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.03] p-10 text-center">
-          <p className="text-base font-medium text-white">Нет заметок в этом разделе</p>
-          <p className="text-sm text-white/40">Создай первую заметку и начни собирать важные мысли.</p>
+        <Card className="grid justify-items-center gap-2 p-10 text-center">
+          <div className="mb-2 flex h-20 w-20 items-center justify-center rounded-[1.6rem] bg-amber-500/10 text-amber-300">
+            <FileText className="h-8 w-8" />
+          </div>
+          <p className="text-[1.35rem] font-semibold tracking-[-0.03em] text-white">Здесь пока тихо</p>
+          <p className="max-w-md text-sm leading-7 text-white/42">Создай первую заметку и начни собирать важные мысли, ссылки и договорённости.</p>
         </Card>
       ) : (
         <div className="columns-1 gap-3 md:columns-2 xl:columns-3">

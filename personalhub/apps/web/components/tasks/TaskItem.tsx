@@ -72,13 +72,13 @@ export function TaskItem({ task, assigneeLabel, canEdit = true }: TaskItemProps)
 
   return (
     <div
-      className="group flex items-start gap-3 rounded-lg border border-white/[0.06]
-                 bg-white/[0.02] p-3.5 transition-all duration-150
-                 hover:border-white/[0.10] hover:bg-white/[0.04]"
+      className="group surface-panel-soft flex items-start gap-3 rounded-[1.2rem]
+                 p-4 transition-all duration-200
+                 hover:-translate-y-0.5 hover:border-white/12 hover:bg-white/[0.05]"
     >
       <input
         type="checkbox"
-        className="mt-0.5 h-4.5 w-4.5 shrink-0 accent-indigo-500"
+        className="mt-1 h-4.5 w-4.5 shrink-0 accent-indigo-500"
         checked={task.status === "done"}
         onChange={(event) => updateStatus(event.target.checked ? "done" : "todo")}
         disabled={isPending || !canEdit}
@@ -87,14 +87,14 @@ export function TaskItem({ task, assigneeLabel, canEdit = true }: TaskItemProps)
       <div className="min-w-0 flex-1">
         <p
           className={cn(
-            "mb-1 truncate text-sm font-medium text-white",
+            "mb-1.5 truncate text-[15px] font-medium tracking-tight text-white",
             task.status === "done" && "text-white/40 line-through",
           )}
         >
           {task.title}
         </p>
-        {task.description ? <p className="mb-1.5 text-xs leading-relaxed text-white/50 line-clamp-2">{task.description}</p> : null}
-        <div className="flex flex-wrap items-center gap-2 text-xs text-white/30">
+        {task.description ? <p className="mb-2 text-xs leading-6 text-white/50 line-clamp-2">{task.description}</p> : null}
+        <div className="flex flex-wrap items-center gap-2 text-xs text-white/32">
           {task.due_date ? (
             <span className={cn(isPastDue(task.due_date) && task.status !== "done" && "text-rose-400")}>до {task.due_date}</span>
           ) : null}
@@ -105,7 +105,7 @@ export function TaskItem({ task, assigneeLabel, canEdit = true }: TaskItemProps)
         </div>
       </div>
 
-      <div className="flex shrink-0 items-center gap-2 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+      <div className="flex shrink-0 items-center gap-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
         <Badge variant={priorityVariant(task.priority)}>{task.priority}</Badge>
         {canEdit ? (
           <DropdownMenu>

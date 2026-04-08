@@ -205,24 +205,83 @@ export default async function DashboardPage() {
   const members = membersResult.data ?? [];
 
   return (
-    <section className="grid gap-6">
-      <div className="mb-2 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-white">Главная</h1>
-          <p className="mt-1 text-sm text-white/40">Быстрый обзор ключевых модулей семьи.</p>
-        </div>
+    <section className="grid gap-8">
+      <div className="grid gap-5 xl:grid-cols-[1.25fr_0.75fr]">
+        <Card className="relative overflow-hidden p-6 sm:p-7">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.12),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(99,102,241,0.14),transparent_30%)]" />
+          <div className="relative">
+            <span className="mb-4 inline-flex items-center rounded-full border border-cyan-400/14 bg-cyan-400/7 px-3 py-1.5 text-[11px] uppercase tracking-[0.22em] text-cyan-100/64">
+              Семейный обзор
+            </span>
+            <h1 className="page-title-display max-w-[720px] text-[2.9rem] leading-[0.96] text-white sm:text-[3.5rem]">
+              Всё важное
+              <br />
+              <span className="text-white/56">в одном спокойном ритме</span>
+            </h1>
+            <p className="mt-4 max-w-[560px] text-sm leading-7 text-white/46">
+              Контролируйте задачи, покупки, заметки и ближайшие события без перегруженных экранов и лишних действий.
+            </p>
+
+            <div className="mt-7 grid gap-3 sm:grid-cols-3">
+              {[
+                { label: 'Активные задачи', value: tasksActiveCount },
+                { label: 'Открытые покупки', value: shoppingUnchecked },
+                { label: 'Ближайшие события', value: eventsCount },
+              ].map((item) => (
+                <div key={item.label} className="surface-panel-soft rounded-[1.3rem] px-4 py-4">
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-white/30">{item.label}</p>
+                  <p className="mt-2 text-[1.75rem] font-semibold tracking-[-0.04em] text-white">{item.value}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <div className="mb-5 flex items-center justify-between">
+            <div>
+              <p className="text-[11px] uppercase tracking-[0.2em] text-white/30">Состав</p>
+              <h2 className="mt-2 text-xl font-semibold tracking-[-0.03em] text-white">Семья онлайн</h2>
+            </div>
+            <Link href="/dashboard/family" className="text-xs text-white/40 transition-colors hover:text-white/72">
+              Открыть
+            </Link>
+          </div>
+
+          <div className="grid gap-3">
+            {members.slice(0, 4).map((member) => {
+              const profile = Array.isArray(member.profiles) ? member.profiles[0] : member.profiles;
+              const name = member.nickname || profile?.full_name || "Unknown";
+
+              return (
+                <div
+                  key={member.id}
+                  className="surface-panel-soft flex items-center gap-3 rounded-[1.1rem] px-3.5 py-3.5 transition-all duration-200 hover:border-white/12 hover:bg-white/[0.05]"
+                >
+                  <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500/24 to-cyan-400/12 text-xs font-semibold text-white">
+                    {initials(name)}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-white">{name}</p>
+                    <p className="text-xs capitalize text-white/38">{member.role}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </Card>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Card className="group rounded-xl border border-white/[0.07] bg-white/[0.03] p-5 transition-all duration-200 hover:border-white/[0.10] hover:bg-white/[0.04] hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)]">
+        <Card className="group p-5">
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-indigo-500/20 bg-indigo-500/10">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-indigo-400/16 bg-indigo-400/10">
                 <CheckSquare className="h-4.5 w-4.5 text-indigo-400" />
               </div>
               <div>
-                <h3 className="mb-0.5 text-xs font-medium uppercase tracking-wider text-white/40">Задачи</h3>
-                <p className="text-2xl font-bold tabular-nums text-white">{tasksActiveCount}</p>
+                <h3 className="mb-0.5 text-xs font-medium uppercase tracking-[0.2em] text-white/32">Задачи</h3>
+                <p className="text-3xl font-semibold tracking-[-0.04em] text-white">{tasksActiveCount}</p>
               </div>
             </div>
             <Link href="/dashboard/tasks">
@@ -252,15 +311,15 @@ export default async function DashboardPage() {
           </Link>
         </Card>
 
-        <Card className="group rounded-xl border border-white/[0.07] bg-white/[0.03] p-5 transition-all duration-200 hover:border-white/[0.10] hover:bg-white/[0.04] hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)]">
+        <Card className="group p-5">
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-emerald-500/20 bg-emerald-500/10">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-emerald-400/16 bg-emerald-400/10">
                 <ShoppingCart className="h-4.5 w-4.5 text-emerald-400" />
               </div>
               <div>
-                <h3 className="mb-0.5 text-xs font-medium uppercase tracking-wider text-white/40">Покупки</h3>
-                <p className="text-2xl font-bold tabular-nums text-white">{shoppingUnchecked}</p>
+                <h3 className="mb-0.5 text-xs font-medium uppercase tracking-[0.2em] text-white/32">Покупки</h3>
+                <p className="text-3xl font-semibold tracking-[-0.04em] text-white">{shoppingUnchecked}</p>
               </div>
             </div>
             <Link href="/dashboard/shopping">
@@ -290,15 +349,15 @@ export default async function DashboardPage() {
           </Link>
         </Card>
 
-        <Card className="group rounded-xl border border-white/[0.07] bg-white/[0.03] p-5 transition-all duration-200 hover:border-white/[0.10] hover:bg-white/[0.04] hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)]">
+        <Card className="group p-5">
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-amber-500/20 bg-amber-500/10">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-amber-400/16 bg-amber-400/10">
                 <FileText className="h-4.5 w-4.5 text-amber-400" />
               </div>
               <div>
-                <h3 className="mb-0.5 text-xs font-medium uppercase tracking-wider text-white/40">Заметки</h3>
-                <p className="text-2xl font-bold tabular-nums text-white">{notesCount}</p>
+                <h3 className="mb-0.5 text-xs font-medium uppercase tracking-[0.2em] text-white/32">Заметки</h3>
+                <p className="text-3xl font-semibold tracking-[-0.04em] text-white">{notesCount}</p>
               </div>
             </div>
             <Link href="/dashboard/notes">
@@ -328,15 +387,15 @@ export default async function DashboardPage() {
           </Link>
         </Card>
 
-        <Card className="group rounded-xl border border-white/[0.07] bg-white/[0.03] p-5 transition-all duration-200 hover:border-white/[0.10] hover:bg-white/[0.04] hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)]">
+        <Card className="group p-5">
           <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-violet-500/20 bg-violet-500/10">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-violet-400/16 bg-violet-400/10">
                 <CalendarDays className="h-4.5 w-4.5 text-violet-400" />
               </div>
               <div>
-                <h3 className="mb-0.5 text-xs font-medium uppercase tracking-wider text-white/40">Календарь</h3>
-                <p className="text-2xl font-bold tabular-nums text-white">{eventsCount}</p>
+                <h3 className="mb-0.5 text-xs font-medium uppercase tracking-[0.2em] text-white/32">Календарь</h3>
+                <p className="text-3xl font-semibold tracking-[-0.04em] text-white">{eventsCount}</p>
               </div>
             </div>
             <Link href="/dashboard/calendar">
@@ -355,38 +414,6 @@ export default async function DashboardPage() {
           </Link>
         </Card>
       </div>
-
-      <Card className="rounded-xl border border-white/[0.07] bg-white/[0.03] p-5 transition-all duration-200 hover:border-white/[0.10] hover:bg-white/[0.04] hover:shadow-[0_4px_12px_rgba(0,0,0,0.3)]">
-        <div className="mb-4 flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-semibold tracking-tight text-white">Участники семьи</h2>
-            <p className="mt-1 text-sm text-white/40">Активные участники и их роли</p>
-          </div>
-          <Link href="/dashboard/family" className="text-xs text-white/50 transition-colors duration-150 hover:text-white/80">
-            Управление
-          </Link>
-        </div>
-
-        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
-          {members.map((member) => {
-            const profile = Array.isArray(member.profiles) ? member.profiles[0] : member.profiles;
-            const name = member.nickname || profile?.full_name || "Unknown";
-
-            return (
-              <div
-                key={member.id}
-                className="rounded-lg border border-white/[0.07] bg-white/[0.02] p-3 transition-all duration-150 hover:border-white/[0.12] hover:bg-white/[0.04]"
-              >
-                <div className="mb-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-indigo-500/15 text-xs font-semibold text-indigo-300">
-                  {initials(name)}
-                </div>
-                <p className="truncate text-sm font-medium text-white">{name}</p>
-                <p className="text-xs capitalize text-white/40">{member.role}</p>
-              </div>
-            );
-          })}
-        </div>
-      </Card>
 
     </section>
   );

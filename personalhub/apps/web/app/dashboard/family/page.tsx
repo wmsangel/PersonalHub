@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { Users } from "lucide-react";
+import { Sparkles, Users } from "lucide-react";
 import { ActionToast } from "@/components/providers/ActionToast";
 import {
   completeOnboardingAction,
@@ -249,16 +249,27 @@ export default async function FamilyPage({ searchParams }: { searchParams: Searc
   };
 
   return (
-    <section className="grid gap-4">
+    <section className="grid gap-6">
       <ActionToast status={status} message={message} />
 
-      <header className="grid gap-1">
-        <h1 className="text-2xl font-semibold">Семья</h1>
-        <p className="text-sm text-muted-foreground">Участники, приглашения и настройки семьи.</p>
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="flex h-14 w-14 items-center justify-center rounded-[1.25rem] border border-rose-500/18 bg-rose-500/10">
+            <Users className="h-6 w-6 text-rose-300" />
+          </div>
+          <div>
+            <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-white/8 bg-white/[0.04] px-3 py-1.5 text-[11px] uppercase tracking-[0.2em] text-white/34">
+              <Sparkles className="h-3.5 w-3.5 text-rose-300" />
+              состав и доступ
+            </div>
+            <h1 className="text-[2rem] font-semibold tracking-[-0.04em] text-white">Семья</h1>
+            <p className="mt-1 text-sm text-white/42">Участники, приглашения и настройки семейного пространства.</p>
+          </div>
+        </div>
       </header>
 
       {!family || !membership ? (
-        <div className="mx-auto max-w-lg px-4 py-16">
+        <div className="mx-auto max-w-xl px-4 py-14">
           <div className="mb-8 flex justify-center">
             <div className="relative">
               <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-rose-500/20 bg-gradient-to-br from-rose-500/20 to-pink-600/20">
@@ -270,13 +281,13 @@ export default async function FamilyPage({ searchParams }: { searchParams: Searc
           </div>
 
           <div className="mb-10 text-center">
-            <h2 className="mb-3 text-2xl font-semibold text-white">Создайте семейное пространство</h2>
-            <p className="mx-auto max-w-md text-sm leading-relaxed text-white/40">
+            <h2 className="mb-3 text-[2rem] font-semibold tracking-[-0.04em] text-white">Создайте семейное пространство</h2>
+            <p className="mx-auto max-w-md text-sm leading-7 text-white/42">
               Добавьте информацию о себе и вашей семье. Вы станете администратором и сможете пригласить остальных.
             </p>
           </div>
 
-          <form action={completeOnboardingAction} className="space-y-5 rounded-2xl border border-white/[0.07] bg-white/[0.03] p-6">
+          <form action={completeOnboardingAction} className="surface-panel space-y-5 rounded-[1.6rem] p-6">
             <div>
               <label className="mb-2 block text-xs font-medium uppercase tracking-wider text-white/50">Ваше имя</label>
               <input
@@ -321,13 +332,16 @@ export default async function FamilyPage({ searchParams }: { searchParams: Searc
         </div>
       ) : (
         <>
-          <Card className="grid gap-4 rounded-xl border border-white/[0.07] bg-white/[0.03] p-5">
-            <h2 className="text-lg font-semibold text-white">Участники</h2>
+          <Card className="grid gap-4 p-5">
+            <div>
+              <h2 className="text-lg font-semibold text-white">Участники</h2>
+              <p className="mt-1 text-sm text-white/40">Все активные участники семьи и их текущие роли.</p>
+            </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
               {members.map((member) => (
                 <article
                   key={member.id}
-                  className="rounded-xl border border-white/[0.07] bg-white/[0.03] p-5 transition-all duration-150 hover:border-white/[0.10]"
+                  className="surface-panel-soft rounded-[1.3rem] p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-white/12 hover:bg-white/[0.05]"
                 >
                   <div className="mb-3 flex items-start gap-3">
                     <Avatar className="h-12 w-12 shrink-0">

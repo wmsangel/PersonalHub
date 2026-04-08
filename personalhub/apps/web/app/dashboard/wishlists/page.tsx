@@ -1,4 +1,4 @@
-import { Gift } from "lucide-react";
+import { Gift, Sparkles } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import { WishlistCard } from "@/components/wishlists/WishlistCard";
 import { WishlistDialog } from "@/components/wishlists/WishlistDialog";
@@ -96,25 +96,31 @@ export default async function WishlistsPage() {
   );
 
   return (
-    <section className="grid gap-6">
-      <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
+    <section className="grid gap-7">
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-pink-500/20 bg-pink-500/10">
+          <div className="flex h-14 w-14 items-center justify-center rounded-[1.25rem] border border-pink-500/18 bg-pink-500/10">
             <Gift className="h-6 w-6 text-pink-400" />
           </div>
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-white">Вишлисты</h1>
-            <p className="mt-0.5 text-sm text-white/40">Управляйте списками желаний и резервируйте подарки.</p>
+            <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-white/8 bg-white/[0.04] px-3 py-1.5 text-[11px] uppercase tracking-[0.2em] text-white/34">
+              <Sparkles className="h-3.5 w-3.5 text-pink-300" />
+              желания и подарки
+            </div>
+            <h1 className="text-[2rem] font-semibold tracking-[-0.04em] text-white">Вишлисты</h1>
+            <p className="mt-1 text-sm text-white/42">Управляйте списками желаний и резервируйте подарки без пересечений.</p>
           </div>
         </div>
         <WishlistDialog mode="wishlist" canEdit={canEditWishlists} />
       </div>
 
       {wishlists.length === 0 ? (
-        <Card className="grid justify-items-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.03] p-10 text-center">
-          <Gift className="h-10 w-10 text-white/35" />
-          <p className="text-base font-medium text-white">Пока нет вишлистов</p>
-          <p className="text-sm text-white/40">Создай первый список желаний для семьи.</p>
+        <Card className="grid justify-items-center gap-2 p-10 text-center">
+          <div className="mb-2 flex h-20 w-20 items-center justify-center rounded-[1.6rem] bg-pink-500/10 text-pink-300">
+            <Gift className="h-8 w-8" />
+          </div>
+          <p className="text-[1.35rem] font-semibold tracking-[-0.03em] text-white">Пока нет вишлистов</p>
+          <p className="max-w-md text-sm leading-7 text-white/42">Создайте первый список желаний для семьи и начните резервировать подарки без накладок.</p>
           <WishlistDialog mode="wishlist" canEdit={canEditWishlists} />
         </Card>
       ) : (

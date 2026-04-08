@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+import { CalendarDays, Sparkles } from "lucide-react";
 import { CalendarDayGrid } from "@/components/calendar/CalendarDayGrid";
 import { CalendarHeader } from "@/components/calendar/CalendarHeader";
 import { EventDialog } from "@/components/calendar/EventDialog";
@@ -108,7 +109,25 @@ export default async function CalendarPage({ searchParams }: { searchParams: Sea
   });
 
   return (
-    <section className="grid gap-4">
+    <section className="grid gap-6">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="flex h-14 w-14 items-center justify-center rounded-[1.25rem] border border-violet-500/18 bg-violet-500/10">
+            <CalendarDays className="h-6 w-6 text-violet-300" />
+          </div>
+          <div>
+            <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-white/8 bg-white/[0.04] px-3 py-1.5 text-[11px] uppercase tracking-[0.2em] text-white/34">
+              <Sparkles className="h-3.5 w-3.5 text-violet-300" />
+              семейный ритм
+            </div>
+            <h1 className="text-[2rem] font-semibold tracking-[-0.04em] text-white">Календарь</h1>
+            <p className="mt-1 text-sm text-white/42">События, планы и дедлайны в одном обзорном поле.</p>
+          </div>
+        </div>
+
+        <EventDialog mode="create" triggerLabel="Добавить событие" canEdit={canEditCalendar} />
+      </div>
+
       <CalendarHeader
         monthLabel={new Intl.DateTimeFormat("ru-RU", { month: "long", year: "numeric" }).format(monthDate)}
         prevHref={`/dashboard/calendar?month=${toMonthParam(prevMonth)}`}
@@ -116,16 +135,15 @@ export default async function CalendarPage({ searchParams }: { searchParams: Sea
         todayHref={`/dashboard/calendar?month=${toMonthParam(todayMonth)}`}
       />
 
-      <div className="flex justify-end">
-        <EventDialog mode="create" triggerLabel="Добавить событие" canEdit={canEditCalendar} />
-      </div>
-
       {eventsResult.error ? (
         <Card className="p-4 text-sm text-destructive">{eventsResult.error}</Card>
       ) : eventsInMonth.length === 0 ? (
         <Card className="grid justify-items-center gap-2 p-10 text-center">
-          <p className="text-base font-medium">В этом месяце пока нет событий</p>
-          <p className="text-sm text-muted-foreground">Создай первое событие и начни вести семейный календарь.</p>
+          <div className="mb-2 flex h-20 w-20 items-center justify-center rounded-[1.6rem] bg-violet-500/10 text-violet-300">
+            <CalendarDays className="h-8 w-8" />
+          </div>
+          <p className="text-[1.35rem] font-semibold tracking-[-0.03em] text-white">В этом месяце пока спокойно</p>
+          <p className="max-w-md text-sm leading-7 text-white/42">Создай первое событие и начни вести семейный календарь без пересечений и забытых планов.</p>
           <EventDialog mode="create" triggerLabel="Создать событие" canEdit={canEditCalendar} />
         </Card>
       ) : (

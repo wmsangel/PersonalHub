@@ -33,10 +33,10 @@ export function WishlistCard({ wishlist, ownerLabel, currentMemberId, memberLabe
   const router = useRouter();
 
   return (
-    <Card className="rounded-xl border border-white/[0.07] bg-white/[0.03] p-4">
+    <Card className="p-5">
       <div className="mb-3 flex items-start justify-between gap-3">
         <div>
-          <h3 className="text-base font-semibold text-white">{wishlist.title}</h3>
+          <h3 className="text-[1.05rem] font-semibold tracking-[-0.03em] text-white">{wishlist.title}</h3>
           <p className="mt-1 flex items-center gap-2 text-xs text-white/40">
             {wishlist.is_shared ? <Users className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />}
             {wishlist.is_shared ? "Общий" : "Приватный"} · Владелец: {ownerLabel}

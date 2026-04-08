@@ -96,10 +96,10 @@ export default async function DashboardLayout({
   const visibleModules = familyMember ? MODULE_KEYS.filter((key) => modulePermissions[key]) : [...MODULE_KEYS]
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a]">
+    <div className="min-h-screen">
       <Sidebar visibleModules={visibleModules} />
 
-      <div className="md:ml-60 flex flex-col min-h-screen pb-16 md:pb-0">
+      <div className="flex min-h-screen flex-col pb-24 md:ml-[292px] md:pb-0 xl:ml-[304px]">
         <Header
           userId={user.id}
           userEmail={user.email}
@@ -107,8 +107,10 @@ export default async function DashboardLayout({
           familyName={familyName}
         />
 
-        <main className="flex-1 p-6 md:p-8">
-          {children}
+        <main className="flex-1 px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
+          <div className="page-shell">
+            {children}
+          </div>
         </main>
       </div>
 

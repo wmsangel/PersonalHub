@@ -21,14 +21,15 @@ export function SummaryCards({ income, expense, balance }: SummaryCardsProps) {
 
   return (
     <div className="grid gap-3 md:grid-cols-3">
-      <div className="rounded-xl border border-white/[0.07] bg-white/[0.03] p-5">
+      <div className="surface-panel relative overflow-hidden rounded-[1.4rem] p-5">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.16),transparent_34%)]" />
         <div className="mb-4 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-emerald-500/20 bg-emerald-500/10">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-emerald-500/20 bg-emerald-500/10">
             <TrendingUp className="h-5 w-5 text-emerald-400" />
           </div>
           <div>
-            <p className="text-xs uppercase tracking-wider text-white/40">Доходы</p>
-            <p className="text-2xl font-bold tabular-nums text-emerald-400">+{formatMoney(income)}</p>
+            <p className="text-xs uppercase tracking-[0.18em] text-white/34">Доходы</p>
+            <p className="text-[1.85rem] font-semibold tracking-[-0.04em] text-emerald-300">+{formatMoney(income)}</p>
           </div>
         </div>
         <div className="h-2 rounded-full bg-white/[0.06]">
@@ -40,14 +41,15 @@ export function SummaryCards({ income, expense, balance }: SummaryCardsProps) {
         <p className="mt-2 text-xs text-white/30">Доля в месячном потоке: {incomeWidth}%</p>
       </div>
 
-      <div className="rounded-xl border border-white/[0.07] bg-white/[0.03] p-5">
+      <div className="surface-panel relative overflow-hidden rounded-[1.4rem] p-5">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(244,63,94,0.16),transparent_34%)]" />
         <div className="mb-4 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-rose-500/20 bg-rose-500/10">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-rose-500/20 bg-rose-500/10">
             <TrendingDown className="h-5 w-5 text-rose-400" />
           </div>
           <div>
-            <p className="text-xs uppercase tracking-wider text-white/40">Расходы</p>
-            <p className="text-2xl font-bold tabular-nums text-rose-400">-{formatMoney(expense)}</p>
+            <p className="text-xs uppercase tracking-[0.18em] text-white/34">Расходы</p>
+            <p className="text-[1.85rem] font-semibold tracking-[-0.04em] text-rose-300">-{formatMoney(expense)}</p>
           </div>
         </div>
         <div className="h-2 rounded-full bg-white/[0.06]">
@@ -59,14 +61,15 @@ export function SummaryCards({ income, expense, balance }: SummaryCardsProps) {
         <p className="mt-2 text-xs text-white/30">Доля в месячном потоке: {expenseWidth}%</p>
       </div>
 
-      <div className="rounded-xl border border-white/[0.07] bg-white/[0.03] p-5">
+      <div className="surface-panel relative overflow-hidden rounded-[1.4rem] p-5">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.16),transparent_34%)]" />
         <div className="mb-4 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-cyan-500/20 bg-cyan-500/10">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-cyan-500/20 bg-cyan-500/10">
             <Wallet className="h-5 w-5 text-cyan-400" />
           </div>
           <div>
-            <p className="text-xs uppercase tracking-wider text-white/40">Баланс</p>
-            <p className={`text-2xl font-bold tabular-nums ${balance >= 0 ? "text-cyan-400" : "text-rose-400"}`}>
+            <p className="text-xs uppercase tracking-[0.18em] text-white/34">Баланс</p>
+            <p className={`text-[1.85rem] font-semibold tracking-[-0.04em] ${balance >= 0 ? "text-cyan-300" : "text-rose-300"}`}>
               {balance >= 0 ? "+" : ""}
               {formatMoney(balance)}
             </p>
