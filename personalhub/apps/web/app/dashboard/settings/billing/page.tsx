@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { Check, CreditCard, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { createCheckoutSessionAction, createPortalSessionAction } from "@/lib/actions/billing";
@@ -87,73 +87,92 @@ export default async function BillingPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         {plans.map((plan) => (
-          <Card
+          <div
             key={plan.id}
             className={cn(
-              "relative p-1",
-              plan.popular && "ring-2 ring-indigo-500/80",
+              "surface-panel-soft relative overflow-hidden rounded-[1.5rem] p-6 transition-all duration-200 hover:border-white/12",
+              plan.popular && "border-indigo-500/30 bg-indigo-500/[0.04]",
+              currentPlan === plan.id && "border-emerald-500/25 bg-emerald-500/[0.03]",
             )}
           >
+            {/* Top accent */}
+            <div
+              className={cn(
+                "pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent to-transparent",
+                plan.popular && "via-indigo-400/50",
+                !plan.popular && currentPlan === plan.id && "via-emerald-400/40",
+                !plan.popular && currentPlan !== plan.id && "via-white/15",
+              )}
+            />
+
             {plan.popular && (
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <span className="rounded-full bg-indigo-500 px-3 py-1 text-xs font-medium text-white">Популярный</span>
+              <div className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-indigo-300">
+                <Sparkles className="h-3 w-3" />
+                Популярный
               </div>
             )}
 
-            <CardHeader>
-              <CardTitle className="text-white">{plan.name}</CardTitle>
+            {currentPlan === plan.id && !plan.popular && (
+              <div className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-emerald-500/25 bg-emerald-500/8 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-emerald-300">
+                <Check className="h-3 w-3" />
+                Текущий
+              </div>
+            )}
+
+            <div className="mb-1">
+              <p className="text-[11px] uppercase tracking-[0.22em] text-white/35">{plan.name}</p>
               <div className="mt-2 flex items-baseline gap-1">
                 {plan.price === 0 ? (
-                  <span className="text-3xl font-bold text-white">Бесплатно</span>
+                  <span className="text-3xl font-bold leading-none text-white">Бесплатно</span>
                 ) : (
                   <>
-                    <span className="text-3xl font-bold text-white">{plan.price} ₽</span>
-                    <span className="text-sm text-white/50">/месяц</span>
+                    <span className="text-3xl font-bold leading-none text-white">{plan.price} ₽</span>
+                    <span className="text-sm text-white/40">/мес</span>
                   </>
                 )}
               </div>
-            </CardHeader>
+            </div>
 
-            <CardContent>
-              <ul className="mb-6 space-y-3">
-                {plan.features.map((feature) => (
-                  <li key={feature} className="flex items-center gap-2 text-sm">
-                    <Check className="h-4 w-4 shrink-0 text-emerald-400" />
-                    <span className="text-white/75">{feature}</span>
-                  </li>
-                ))}
-              </ul>
+            <ul className="my-6 space-y-2.5">
+              {plan.features.map((feature) => (
+                <li key={feature} className="flex items-center gap-2.5 text-sm">
+                  <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/12">
+                    <Check className="h-3 w-3 text-emerald-400" />
+                  </div>
+                  <span className="text-white/65">{feature}</span>
+                </li>
+              ))}
+            </ul>
 
-              {currentPlan === plan.id ? (
-                <Button variant="outline" disabled className="w-full border-white/20 text-white/70">
-                  Текущий план
+            {currentPlan === plan.id ? (
+              <Button variant="outline" disabled className="w-full">
+                Текущий план
+              </Button>
+            ) : plan.id === "free" ? (
+              <Button variant="ghost" disabled className="w-full text-white/38">
+                Нельзя вернуться на Free
+              </Button>
+            ) : (
+              <form action={createCheckoutSessionAction.bind(null, plan.id)}>
+                <Button type="submit" className="w-full">
+                  Перейти на {plan.name}
                 </Button>
-              ) : plan.id === "free" ? (
-                <Button variant="ghost" disabled className="w-full text-white/50">
-                  Нельзя вернуться на Free
-                </Button>
-              ) : (
-                <form action={createCheckoutSessionAction.bind(null, plan.id)}>
-                  <Button type="submit" className="w-full">
-                    Перейти на {plan.name}
-                  </Button>
-                </form>
-              )}
-            </CardContent>
-          </Card>
+              </form>
+            )}
+          </div>
         ))}
       </div>
 
       {hasSubscription && (
-        <Card className="p-6">
-          <h3 className="mb-2 text-sm font-medium text-white">Управление подпиской</h3>
-          <p className="mb-4 text-xs text-white/50">
-            Обновите платежные данные, просмотрите историю или отмените подписку в Stripe Customer Portal.
+        <Card className="p-5 sm:p-6">
+          <h3 className="mb-1 text-sm font-semibold text-white">Управление подпиской</h3>
+          <p className="mb-4 text-xs leading-5 text-white/42">
+            Обновите платёжные данные, просмотрите историю или отмените подписку через Stripe Customer Portal.
           </p>
           <form action={createPortalSessionAction}>
-            <Button type="submit" variant="outline" className="border-white/20 text-white hover:bg-white/10">
+            <Button type="submit" variant="outline">
               Открыть Stripe Portal
             </Button>
           </form>

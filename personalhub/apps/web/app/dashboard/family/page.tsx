@@ -92,7 +92,31 @@ const readFullName = (profiles: MemberRow["profiles"]): string => {
   return profiles.full_name ?? "Unknown";
 };
 
-const formatDate = (value: string): string => new Date(value).toLocaleString();
+const formatDate = (value: string): string =>
+  new Date(value).toLocaleString("ru-RU", { day: "numeric", month: "short", year: "numeric" });
+
+const getRoleLabel = (role: string): string => {
+  if (role === "admin") return "Администратор";
+  if (role === "adult") return "Взрослый";
+  if (role === "child") return "Ребёнок";
+  if (role === "guest") return "Гость";
+  return role;
+};
+
+const getStatusLabel = (status: string): string => {
+  if (status === "pending") return "Ожидает";
+  if (status === "accepted") return "Принято";
+  if (status === "revoked") return "Отозвано";
+  if (status === "expired") return "Истекло";
+  return status;
+};
+
+const statusClass = (status: string): string => {
+  if (status === "pending") return "border-amber-500/20 bg-amber-500/10 text-amber-300";
+  if (status === "accepted") return "border-emerald-500/20 bg-emerald-500/10 text-emerald-300";
+  if (status === "revoked") return "border-rose-500/20 bg-rose-500/10 text-rose-300";
+  return "border-white/10 bg-white/[0.04] text-white/40";
+};
 const getInitials = (value: string): string =>
   value
     .split(" ")
@@ -290,39 +314,21 @@ export default async function FamilyPage({ searchParams }: { searchParams: Searc
           <form action={completeOnboardingAction} className="surface-panel space-y-5 rounded-[1.6rem] p-6">
             <div>
               <label className="mb-2 block text-xs font-medium uppercase tracking-wider text-white/50">Ваше имя</label>
-              <input
-                name="full_name"
-                defaultValue={profile?.full_name ?? ""}
-                placeholder="Иван Иванов"
-                required
-                className="w-full rounded-xl border border-white/[0.08] bg-white/[0.05] px-4 py-3 text-sm text-white placeholder:text-white/20 outline-none transition-all duration-150 hover:border-white/[0.12] hover:bg-white/[0.07] focus:border-rose-500/50 focus:bg-white/[0.07] focus:shadow-[0_0_0_3px_rgba(244,63,94,0.08)]"
-              />
+              <input name="full_name" defaultValue={profile?.full_name ?? ""} placeholder="Иван Иванов" required className="field-input" />
             </div>
-
             <div>
               <label className="mb-2 block text-xs font-medium uppercase tracking-wider text-white/50">Название семьи</label>
-              <input
-                name="family_name"
-                placeholder="Семья Ивановых"
-                required
-                className="w-full rounded-xl border border-white/[0.08] bg-white/[0.05] px-4 py-3 text-sm text-white placeholder:text-white/20 outline-none transition-all duration-150 hover:border-white/[0.12] hover:bg-white/[0.07] focus:border-rose-500/50 focus:bg-white/[0.07] focus:shadow-[0_0_0_3px_rgba(244,63,94,0.08)]"
-              />
+              <input name="family_name" placeholder="Семья Ивановых" required className="field-input" />
             </div>
-
             <div>
               <label className="mb-2 block text-xs font-medium uppercase tracking-wider text-white/50">
-                Ваш никнейм <span className="text-white/20">(необязательно)</span>
+                Никнейм <span className="text-white/20">(необязательно)</span>
               </label>
-              <input
-                name="nickname"
-                placeholder="Папа, Мама..."
-                className="w-full rounded-xl border border-white/[0.08] bg-white/[0.05] px-4 py-3 text-sm text-white placeholder:text-white/20 outline-none transition-all duration-150 hover:border-white/[0.12] hover:bg-white/[0.07] focus:border-rose-500/50 focus:bg-white/[0.07] focus:shadow-[0_0_0_3px_rgba(244,63,94,0.08)]"
-              />
+              <input name="nickname" placeholder="Папа, Мама..." className="field-input" />
             </div>
-
             <button
               type="submit"
-              className="mt-2 w-full rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 py-3 text-sm font-semibold text-white shadow-[0_0_24px_rgba(244,63,94,0.25)] transition-all duration-150 hover:-translate-y-px hover:from-rose-400 hover:to-pink-500 hover:shadow-[0_4px_28px_rgba(244,63,94,0.35)]"
+              className="mt-2 w-full rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 py-3 text-sm font-semibold text-white shadow-[0_0_24px_rgba(244,63,94,0.25)] transition-all duration-150 hover:-translate-y-px hover:shadow-[0_4px_28px_rgba(244,63,94,0.35)]"
             >
               Создать семейное пространство →
             </button>
@@ -332,149 +338,177 @@ export default async function FamilyPage({ searchParams }: { searchParams: Searc
         </div>
       ) : (
         <>
-          <Card className="grid gap-4 p-5">
+          {/* Members */}
+          <Card className="grid gap-5 p-5 sm:p-6">
             <div>
-              <h2 className="text-lg font-semibold text-white">Участники</h2>
-              <p className="mt-1 text-sm text-white/40">Все активные участники семьи и их текущие роли.</p>
+              <h2 className="text-base font-semibold text-white">Участники</h2>
+              <p className="mt-0.5 text-sm text-white/40">Все активные участники и их текущие роли.</p>
             </div>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {members.map((member) => (
-                <article
-                  key={member.id}
-                  className="surface-panel-soft rounded-[1.3rem] p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-white/12 hover:bg-white/[0.05]"
-                >
-                  <div className="mb-3 flex items-start gap-3">
-                    <Avatar className="h-12 w-12 shrink-0">
-                      <AvatarFallback className="bg-indigo-600 text-sm font-semibold text-white">
-                        {getInitials(member.nickname || readFullName(member.profiles))}
-                      </AvatarFallback>
-                    </Avatar>
-
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium text-white">
-                        {member.nickname || readFullName(member.profiles)}
-                      </p>
-                      <p className="text-xs text-white/40">{readFullName(member.profiles)}</p>
-                      <span className="mt-2 inline-flex rounded-md border border-white/[0.12] px-2 py-0.5 text-[10px] uppercase tracking-wide text-white/55">
-                        {member.role}
-                      </span>
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+              {members.map((member) => {
+                const memberName = member.nickname || readFullName(member.profiles);
+                return (
+                  <article
+                    key={member.id}
+                    className="surface-panel-soft rounded-[1.3rem] p-4 transition-all duration-200 hover:border-white/12 hover:bg-white/[0.05]"
+                  >
+                    <div className="mb-3 flex items-center gap-3">
+                      <Avatar className="h-11 w-11 shrink-0">
+                        <AvatarFallback className="rounded-xl bg-gradient-to-br from-indigo-500/30 to-violet-600/20 text-sm font-semibold text-white">
+                          {getInitials(memberName)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium text-white">{memberName}</p>
+                        {member.nickname ? <p className="truncate text-xs text-white/38">{readFullName(member.profiles)}</p> : null}
+                        <span className="mt-1.5 inline-flex rounded-lg border border-white/[0.1] px-2 py-0.5 text-[10px] uppercase tracking-[0.16em] text-white/45">
+                          {getRoleLabel(member.role)}
+                        </span>
+                      </div>
                     </div>
-                  </div>
 
-                  {membership.role === "admin" ? (
-                    <div className="mt-3 grid gap-2 md:grid-cols-[1fr_auto]">
-                      <form action={updateFamilyMemberRoleAction} className="flex items-center gap-2">
-                        <input type="hidden" name="member_id" value={member.id} />
-                        <select
-                          name="role"
-                          defaultValue={member.role}
-                          className="h-9 rounded-md border border-white/[0.12] bg-[#0f0f11] px-2 text-sm text-white"
-                        >
-                          <option value="admin">admin</option>
-                          <option value="adult">adult</option>
-                          <option value="child">child</option>
-                          <option value="guest">guest</option>
-                        </select>
-                        <Button size="sm" type="submit">
-                          Изменить
-                        </Button>
-                      </form>
-
-                      <div className="flex justify-start md:justify-end">
+                    {membership.role === "admin" ? (
+                      <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-white/[0.06] pt-3">
+                        <form action={updateFamilyMemberRoleAction} className="flex flex-1 items-center gap-2">
+                          <input type="hidden" name="member_id" value={member.id} />
+                          <select name="role" defaultValue={member.role} className="field-input flex-1">
+                            <option value="admin">Администратор</option>
+                            <option value="adult">Взрослый</option>
+                            <option value="child">Ребёнок</option>
+                            <option value="guest">Гость</option>
+                          </select>
+                          <Button size="sm" type="submit" variant="outline">
+                            Сохранить
+                          </Button>
+                        </form>
                         <PermissionsDialog
                           memberId={member.id}
-                          memberDisplayName={member.nickname || readFullName(member.profiles)}
+                          memberDisplayName={memberName}
                           memberRole={member.role}
                           initialPermissions={memberPermissionsMap[member.id] ?? []}
                         />
                       </div>
-                    </div>
-                  ) : null}
-                </article>
-              ))}
+                    ) : null}
+                  </article>
+                );
+              })}
             </div>
           </Card>
 
+          {/* Family settings */}
           {membership.role === "admin" ? (
-            <Card className="grid gap-4 p-4">
-              <h2 className="text-lg font-semibold">Настройки семьи</h2>
-              <form action={updateFamilySettingsAction} className="grid gap-2 md:grid-cols-3">
+            <Card className="grid gap-5 p-5 sm:p-6">
+              <div>
+                <h2 className="text-base font-semibold text-white">Настройки пространства</h2>
+                <p className="mt-0.5 text-sm text-white/40">Название и тарифный план семьи.</p>
+              </div>
+              <form action={updateFamilySettingsAction} className="grid gap-4 sm:grid-cols-[1fr_auto_auto] items-end">
                 <input type="hidden" name="family_id" value={family?.id ?? ""} />
-                <input
-                  name="family_name"
-                  defaultValue={family?.name ?? ""}
-                  className="h-10 rounded-md border px-3"
-                  placeholder="Название семьи"
-                  required
-                />
-                <select name="plan" defaultValue={family?.plan ?? "free"} className="h-10 rounded-md border px-3">
-                  <option value="free">free</option>
-                  <option value="premium">premium</option>
-                  <option value="family_plus">family_plus</option>
-                </select>
-                <Button type="submit">Обновить</Button>
+                <div className="grid gap-1.5">
+                  <label className="text-xs font-medium uppercase tracking-wider text-white/38">Название</label>
+                  <input name="family_name" defaultValue={family?.name ?? ""} className="field-input" placeholder="Семья Ивановых" required />
+                </div>
+                <div className="grid gap-1.5">
+                  <label className="text-xs font-medium uppercase tracking-wider text-white/38">Тариф</label>
+                  <select name="plan" defaultValue={family?.plan ?? "free"} className="field-input">
+                    <option value="free">Free</option>
+                    <option value="premium">Premium</option>
+                    <option value="family_plus">Family+</option>
+                  </select>
+                </div>
+                <Button type="submit">Сохранить</Button>
               </form>
             </Card>
           ) : null}
 
+          {/* Invite form + list */}
           {membership.role === "admin" ? (
             <>
-              <Card className="grid gap-3 p-4">
-                <h2 className="text-lg font-semibold">Приглашения</h2>
-                <form action={inviteMemberAction} className="grid gap-2 md:grid-cols-4">
-                  <input name="email" type="email" placeholder="member@email.com" required className="h-10 rounded-md border px-3" />
-                  <input name="nickname" type="text" placeholder="Nickname" className="h-10 rounded-md border px-3" />
-                  <select name="role" defaultValue="child" className="h-10 rounded-md border px-3">
-                    <option value="adult">adult</option>
-                    <option value="child">child</option>
-                    <option value="guest">guest</option>
-                    <option value="admin">admin</option>
-                  </select>
-                  <Button type="submit">Invite</Button>
+              <Card className="grid gap-5 p-5 sm:p-6">
+                <div>
+                  <h2 className="text-base font-semibold text-white">Пригласить участника</h2>
+                  <p className="mt-0.5 text-sm text-white/40">Участник получит письмо с ссылкой для входа.</p>
+                </div>
+                <form action={inviteMemberAction} className="grid gap-3 sm:grid-cols-[1fr_1fr_auto_auto] items-end">
+                  <div className="grid gap-1.5">
+                    <label className="text-xs font-medium uppercase tracking-wider text-white/38">Email</label>
+                    <input name="email" type="email" placeholder="member@example.com" required className="field-input" />
+                  </div>
+                  <div className="grid gap-1.5">
+                    <label className="text-xs font-medium uppercase tracking-wider text-white/38">
+                      Никнейм <span className="text-white/20 normal-case tracking-normal">(необязательно)</span>
+                    </label>
+                    <input name="nickname" type="text" placeholder="Папа, Мама..." className="field-input" />
+                  </div>
+                  <div className="grid gap-1.5">
+                    <label className="text-xs font-medium uppercase tracking-wider text-white/38">Роль</label>
+                    <select name="role" defaultValue="child" className="field-input">
+                      <option value="adult">Взрослый</option>
+                      <option value="child">Ребёнок</option>
+                      <option value="guest">Гость</option>
+                      <option value="admin">Администратор</option>
+                    </select>
+                  </div>
+                  <Button type="submit">Пригласить</Button>
                 </form>
               </Card>
 
-              <Card className="grid gap-4 p-4">
-                <h2 className="text-lg font-semibold">Список приглашений</h2>
+              <Card className="grid gap-5 p-5 sm:p-6">
+                <div>
+                  <h2 className="text-base font-semibold text-white">Список приглашений</h2>
+                  <p className="mt-0.5 text-sm text-white/40">Управляйте отправленными приглашениями.</p>
+                </div>
 
-                <form action="/dashboard/family" method="get" className="grid gap-2 md:grid-cols-4">
-                  <input
-                    name="invite_q"
-                    placeholder="Search by email"
-                    defaultValue={inviteQuery}
-                    className="h-10 rounded-md border px-3"
-                  />
-                  <select name="invite_status" defaultValue={inviteStatus} className="h-10 rounded-md border px-3">
-                    <option value="pending">pending</option>
-                    <option value="accepted">accepted</option>
-                    <option value="revoked">revoked</option>
-                    <option value="expired">expired</option>
-                    <option value="all">all</option>
-                  </select>
-                  <select name="invite_sort" defaultValue={inviteSort} className="h-10 rounded-md border px-3">
-                    <option value="created_desc">created: newest</option>
-                    <option value="created_asc">created: oldest</option>
-                    <option value="email_asc">email: A-Z</option>
-                    <option value="email_desc">email: Z-A</option>
-                    <option value="status_asc">status: A-Z</option>
-                    <option value="status_desc">status: Z-A</option>
-                  </select>
-                  <Button type="submit">Apply</Button>
+                <form action="/dashboard/family" method="get" className="grid gap-3 sm:grid-cols-[1fr_auto_auto_auto] items-end">
+                  <input name="invite_q" placeholder="Поиск по email..." defaultValue={inviteQuery} className="field-input" />
+                  <div className="grid gap-1.5">
+                    <label className="text-xs font-medium uppercase tracking-wider text-white/38">Статус</label>
+                    <select name="invite_status" defaultValue={inviteStatus} className="field-input">
+                      <option value="pending">Ожидает</option>
+                      <option value="accepted">Принято</option>
+                      <option value="revoked">Отозвано</option>
+                      <option value="expired">Истекло</option>
+                      <option value="all">Все статусы</option>
+                    </select>
+                  </div>
+                  <div className="grid gap-1.5">
+                    <label className="text-xs font-medium uppercase tracking-wider text-white/38">Сортировка</label>
+                    <select name="invite_sort" defaultValue={inviteSort} className="field-input">
+                      <option value="created_desc">Новые первые</option>
+                      <option value="created_asc">Старые первые</option>
+                      <option value="email_asc">Email: А–Я</option>
+                      <option value="email_desc">Email: Я–А</option>
+                      <option value="status_asc">Статус: А–Я</option>
+                      <option value="status_desc">Статус: Я–А</option>
+                    </select>
+                  </div>
+                  <Button type="submit" variant="outline">Применить</Button>
                 </form>
 
                 {invites.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No invites found.</p>
+                  <p className="py-4 text-center text-sm text-white/35">Приглашений не найдено</p>
                 ) : (
                   <ul className="grid gap-2">
                     {invites.map((invite) => (
-                      <li key={invite.id} className="rounded-md border p-3 text-sm">
-                        {invite.invited_email} ({invite.role}){invite.nickname ? ` as ${invite.nickname}` : ""} - {invite.status} at{" "}
-                        {formatDate(invite.created_at)}
+                      <li key={invite.id} className="surface-panel-soft flex items-center gap-3 rounded-[1.2rem] p-3.5">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.04] text-xs font-semibold text-white/55">
+                          {invite.invited_email[0]?.toUpperCase() ?? "?"}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm text-white/80">{invite.invited_email}</p>
+                          <p className="mt-0.5 text-xs text-white/35">
+                            {invite.nickname ? `${invite.nickname} · ` : ""}
+                            {getRoleLabel(invite.role)} · {formatDate(invite.created_at)}
+                          </p>
+                        </div>
+                        <span className={`shrink-0 rounded-lg border px-2 py-0.5 text-[11px] uppercase tracking-[0.14em] ${statusClass(invite.status)}`}>
+                          {getStatusLabel(invite.status)}
+                        </span>
                         {invite.status === "pending" ? (
-                          <form action={revokeInviteAction} className="ml-2 inline">
+                          <form action={revokeInviteAction}>
                             <input type="hidden" name="invite_id" value={invite.id} />
                             <Button size="sm" variant="outline" type="submit">
-                              Revoke
+                              Отозвать
                             </Button>
                           </form>
                         ) : null}
@@ -483,23 +517,25 @@ export default async function FamilyPage({ searchParams }: { searchParams: Searc
                   </ul>
                 )}
 
-                <div className="flex items-center gap-3 text-sm">
-                  <a
-                    href={buildInviteUrl({ invite_page: String(Math.max(1, invitePage - 1)) })}
-                    className={invitePage <= 1 ? "pointer-events-none opacity-50" : ""}
-                  >
-                    Previous
-                  </a>
-                  <span>
-                    Page {invitePage} of {maxInvitePage}
-                  </span>
-                  <a
-                    href={buildInviteUrl({ invite_page: String(Math.min(maxInvitePage, invitePage + 1)) })}
-                    className={invitePage >= maxInvitePage ? "pointer-events-none opacity-50" : ""}
-                  >
-                    Next
-                  </a>
-                </div>
+                {maxInvitePage > 1 ? (
+                  <div className="flex items-center justify-between border-t border-white/[0.06] pt-4">
+                    <a
+                      href={buildInviteUrl({ invite_page: String(Math.max(1, invitePage - 1)) })}
+                      className={`rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-sm text-white/55 transition-all hover:border-white/[0.12] hover:text-white/80 ${invitePage <= 1 ? "pointer-events-none opacity-35" : ""}`}
+                    >
+                      ← Назад
+                    </a>
+                    <span className="text-xs text-white/35">
+                      Страница {invitePage} из {maxInvitePage}
+                    </span>
+                    <a
+                      href={buildInviteUrl({ invite_page: String(Math.min(maxInvitePage, invitePage + 1)) })}
+                      className={`rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-sm text-white/55 transition-all hover:border-white/[0.12] hover:text-white/80 ${invitePage >= maxInvitePage ? "pointer-events-none opacity-35" : ""}`}
+                    >
+                      Вперёд →
+                    </a>
+                  </div>
+                ) : null}
               </Card>
             </>
           ) : null}

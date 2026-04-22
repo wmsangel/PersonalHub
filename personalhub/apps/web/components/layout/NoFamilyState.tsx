@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 export function NoFamilyState({
-  title = "Пространство семьи ещё не собрано",
+  title = "Семейное пространство не подключено",
   description = 'Чтобы этот раздел начал работать, создайте или подключите семейное пространство в разделе "Семья".',
 }: {
   title?: string;

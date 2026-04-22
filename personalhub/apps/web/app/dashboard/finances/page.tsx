@@ -158,36 +158,34 @@ export default async function FinancesPage({ searchParams }: { searchParams: Sea
         }))}
       />
 
-      <Card className="p-4">
-        <form className="grid gap-3 md:grid-cols-6" method="get">
-          <div className="grid gap-1 md:col-span-1">
-            <label htmlFor="month" className="text-xs text-white/40">
-              Месяц summary
+      <Card className="p-5 sm:p-6">
+        <div className="mb-4">
+          <h2 className="text-sm font-semibold text-white">Фильтры транзакций</h2>
+          <p className="mt-0.5 text-xs text-white/38">Сузьте список по периоду, типу и счёту</p>
+        </div>
+        <form className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6" method="get">
+          <div className="grid gap-1.5">
+            <label htmlFor="month" className="text-[11px] font-medium uppercase tracking-wider text-white/35">
+              Месяц сводки
             </label>
-            <input
-              id="month"
-              name="month"
-              type="month"
-              defaultValue={month}
-              className="h-10 rounded-md border border-white/[0.08] bg-[#0f0f11] px-3 text-sm text-white"
-            />
+            <input id="month" name="month" type="month" defaultValue={month} className="field-input" />
           </div>
-          <div className="grid gap-1 md:col-span-1">
-            <label htmlFor="kind" className="text-xs text-white/40">
+          <div className="grid gap-1.5">
+            <label htmlFor="kind" className="text-[11px] font-medium uppercase tracking-wider text-white/35">
               Тип
             </label>
-            <select id="kind" name="kind" defaultValue={kind || "all"} className="h-10 rounded-md border border-white/[0.08] bg-[#0f0f11] px-3 text-sm text-white">
-              <option value="all">Все</option>
+            <select id="kind" name="kind" defaultValue={kind || "all"} className="field-input">
+              <option value="all">Все операции</option>
               <option value="income">Доход</option>
               <option value="expense">Расход</option>
             </select>
           </div>
-          <div className="grid gap-1 md:col-span-1">
-            <label htmlFor="accountId" className="text-xs text-white/40">
+          <div className="grid gap-1.5">
+            <label htmlFor="accountId" className="text-[11px] font-medium uppercase tracking-wider text-white/35">
               Счёт
             </label>
-            <select id="accountId" name="accountId" defaultValue={accountId || "all"} className="h-10 rounded-md border border-white/[0.08] bg-[#0f0f11] px-3 text-sm text-white">
-              <option value="all">Все</option>
+            <select id="accountId" name="accountId" defaultValue={accountId || "all"} className="field-input">
+              <option value="all">Все счета</option>
               {accounts.map((account) => (
                 <option key={account.id} value={account.id}>
                   {account.name}
@@ -195,17 +193,12 @@ export default async function FinancesPage({ searchParams }: { searchParams: Sea
               ))}
             </select>
           </div>
-          <div className="grid gap-1 md:col-span-1">
-            <label htmlFor="categoryId" className="text-xs text-white/40">
+          <div className="grid gap-1.5">
+            <label htmlFor="categoryId" className="text-[11px] font-medium uppercase tracking-wider text-white/35">
               Категория
             </label>
-            <select
-              id="categoryId"
-              name="categoryId"
-              defaultValue={categoryId || "all"}
-              className="h-10 rounded-md border border-white/[0.08] bg-[#0f0f11] px-3 text-sm text-white"
-            >
-              <option value="all">Все</option>
+            <select id="categoryId" name="categoryId" defaultValue={categoryId || "all"} className="field-input">
+              <option value="all">Все категории</option>
               {categories.map((category) => (
                 <option key={category.id} value={category.id}>
                   {category.name}
@@ -213,22 +206,20 @@ export default async function FinancesPage({ searchParams }: { searchParams: Sea
               ))}
             </select>
           </div>
-          <div className="grid gap-1 md:col-span-1">
-            <label htmlFor="from" className="text-xs text-white/40">
-              От
+          <div className="grid gap-1.5">
+            <label htmlFor="from" className="text-[11px] font-medium uppercase tracking-wider text-white/35">
+              Период от
             </label>
-            <input id="from" name="from" type="date" defaultValue={from} className="h-10 rounded-md border border-white/[0.08] bg-[#0f0f11] px-3 text-sm text-white" />
+            <input id="from" name="from" type="date" defaultValue={from} className="field-input" />
           </div>
-          <div className="grid gap-1 md:col-span-1">
-            <label htmlFor="to" className="text-xs text-white/40">
-              До
+          <div className="grid gap-1.5">
+            <label htmlFor="to" className="text-[11px] font-medium uppercase tracking-wider text-white/35">
+              Период до
             </label>
-            <input id="to" name="to" type="date" defaultValue={to} className="h-10 rounded-md border border-white/[0.08] bg-[#0f0f11] px-3 text-sm text-white" />
+            <input id="to" name="to" type="date" defaultValue={to} className="field-input" />
           </div>
-          <div className="flex items-end gap-2 md:col-span-6">
-            <Button type="submit" size="sm">
-              Применить фильтры
-            </Button>
+          <div className="flex items-end gap-2 sm:col-span-2 md:col-span-3 lg:col-span-6">
+            <Button type="submit" size="sm">Применить фильтры</Button>
             <Button asChild type="button" variant="outline" size="sm">
               <a href="/dashboard/finances">Сбросить</a>
             </Button>

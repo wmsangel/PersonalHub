@@ -16,22 +16,24 @@ export default async function DashboardLayout({
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) redirect('/auth')
+  if (!user) {
+    redirect('/auth')
+  }
 
   const { data: profile } = await supabase
     .from('profiles')
     .select('full_name')
     .eq('id', user.id)
-    .single()
+    .maybeSingle()
 
-  const { data: familyMember } = await supabase
+  let { data: membership } = await supabase
     .from('family_members')
     .select('id, family_id, role, families(name)')
     .eq('user_id', user.id)
     .eq('is_active', true)
     .maybeSingle()
 
-  if (!familyMember) {
+  if (!membership) {
     const profileName = profile?.full_name?.trim()
     const metadataName =
       typeof user.user_metadata?.full_name === 'string' ? user.user_metadata.full_name.trim() : ''
@@ -48,19 +50,18 @@ export default async function DashboardLayout({
     )
 
     if (!upsertProfileError) {
-      const familyTitle = `${fullName} пространство`
-      const { data: createdFamily, error: createdFamilyError } = await supabase
+      const { data: createdFamily, error: familyCreateError } = await supabase
         .from('families')
         .insert({
-          name: familyTitle,
+          name: `${fullName} пространство`,
           created_by: user.id,
           plan: 'free',
         })
         .select('id')
         .single()
 
-      if (!createdFamilyError && createdFamily) {
-        const { error: membershipInsertError } = await supabase.from('family_members').insert({
+      if (!familyCreateError && createdFamily) {
+        const { error: memberCreateError } = await supabase.from('family_members').insert({
           family_id: createdFamily.id,
           user_id: user.id,
           role: 'admin',
@@ -68,38 +69,49 @@ export default async function DashboardLayout({
           is_active: true,
         })
 
-        if (!membershipInsertError) {
-          redirect('/dashboard')
+        if (!memberCreateError) {
+          membership = {
+            id: user.id,
+            family_id: createdFamily.id,
+            role: 'admin',
+            families: [{ name: `${fullName} пространство` }],
+          }
         }
       }
     }
   }
 
-  const familyName = (familyMember?.families as { name?: string } | null)?.name
+  const familyRelation = membership?.families as { name?: string } | { name?: string }[] | null | undefined
+  const familyName = Array.isArray(familyRelation) ? familyRelation[0]?.name : familyRelation?.name
+
   const modulePermissions = Object.fromEntries(
-    MODULE_KEYS.map((key) => [key, familyMember?.role === 'admin'])
+    MODULE_KEYS.map((key) => [key, membership?.role === 'admin']),
   ) as Record<(typeof MODULE_KEYS)[number], boolean>
 
-  if (familyMember && familyMember.role !== 'admin') {
+  if (membership?.id && membership.role !== 'admin') {
     const { data: permissions } = await supabase
       .from('member_permissions')
       .select('module, can_view')
-      .eq('member_id', familyMember.id)
+      .eq('member_id', membership.id)
+      .eq('can_view', true)
 
     for (const permission of permissions ?? []) {
       if (permission.module in modulePermissions) {
-        modulePermissions[permission.module as (typeof MODULE_KEYS)[number]] = Boolean(permission.can_view)
+        modulePermissions[permission.module as (typeof MODULE_KEYS)[number]] = true
       }
     }
   }
 
-  const visibleModules = familyMember ? MODULE_KEYS.filter((key) => modulePermissions[key]) : [...MODULE_KEYS]
+  const visibleModules =
+    membership && membership.role !== 'admin'
+      ? MODULE_KEYS.filter((key) => modulePermissions[key])
+      : [...MODULE_KEYS]
 
   return (
-    <div className="min-h-screen">
+    <div className="relative min-h-screen">
       <Sidebar visibleModules={visibleModules} />
 
-      <div className="flex min-h-screen flex-col pb-24 md:ml-[292px] md:pb-0 xl:ml-[304px]">
+      <div className="min-h-screen md:ml-[292px] xl:ml-[304px]">
         <Header
           userId={user.id}
           userEmail={user.email}
@@ -107,10 +119,8 @@ export default async function DashboardLayout({
           familyName={familyName}
         />
 
-        <main className="flex-1 px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
-          <div className="page-shell">
-            {children}
-          </div>
+        <main className="page-shell px-4 py-6 pb-24 sm:px-6 sm:py-8 sm:pb-8 lg:px-10 lg:py-10 md:pb-10">
+          {children}
         </main>
       </div>
 
